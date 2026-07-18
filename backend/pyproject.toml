@@ -50,5 +50,6 @@ select = ["E", "F", "I", "UP", "B", "W"]
 ignore = ["B008"]  # FastAPI Depends() in defaults is idiomatic
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
+# No async tests exist yet; `asyncio_mode` only warned about an unknown option
+# unless pytest-asyncio was installed. Re-add it alongside an async test.
 testpaths = ["tests"]

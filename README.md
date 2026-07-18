@@ -72,10 +72,22 @@ The fastest way to run the whole platform locally. Requires only **Python 3.12+*
 and **Node.js 20+** on your PATH.
 
 ```
-Double-click  run.bat
+git clone https://github.com/Ahmed-Yassine-10/Nabbahni.git
+cd Nabbahni
+run.bat
 ```
 
-That's it. On first run it sets everything up (~7 min), then launches:
+**First run takes 20–30 minutes** and needs no further input. Nothing is
+pre-baked in the repo, so it builds everything locally: virtualenv → Python
+packages → database → synthetic dataset → **model training (10–20 min, the
+long step)** → scoring → frontend build. Every later `run.bat` starts in under
+a minute.
+
+> New contributor? Read **[CONTRIBUTING.md](CONTRIBUTING.md)** — it covers the
+> first-run timeline step by step, where runtime state lives, and the gotchas
+> that will otherwise cost you an hour.
+
+Once up, it launches:
 
 | | |
 |---|---|

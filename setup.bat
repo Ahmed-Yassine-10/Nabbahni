@@ -7,6 +7,10 @@ echo   SentinelleRx - One-time Setup  (SQLite, no Docker required)
 echo ================================================================
 echo   Runtime folder: %RUNTIME%
 echo.
+echo   This takes 20-30 minutes the first time. Step 5 (training)
+echo   is the long one and prints little while it works - that is
+echo   normal, not a hang. Later runs skip everything already done.
+echo.
 
 where python >nul 2>&1 || (echo [ERROR] Python not found on PATH. Install Python 3.12+ from python.org & pause & exit /b 1)
 where node   >nul 2>&1 || (echo [ERROR] Node.js not found on PATH. Install Node 20+ from nodejs.org & pause & exit /b 1)
@@ -40,7 +44,8 @@ if exist "%RUNTIME%\.seeded" (
 if exist "%ROOT%\ml\artifacts\shortage.joblib" (
   echo [5/7] Models already trained - skipping.
 ) else (
-  echo [5/7] Training demand + shortage models ^(~10 min, please wait^)...
+  echo [5/7] Training demand + shortage models ^(10-20 min - go get a coffee^)...
+  echo       Delete ml\artifacts\ later if you ever need to force a retrain.
   pushd "%ROOT%\ml"
   "%PY%" -m ml.train_all || (popd & echo [ERROR] training failed & pause & exit /b 1)
   popd

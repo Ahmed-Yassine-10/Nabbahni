@@ -1,5 +1,11 @@
 # SentinelleRx — local (SQLite, no-Docker) Python dependencies.
 # Used by run.bat / setup.bat. Production uses backend/pyproject.toml + ml/pyproject.toml.
+#
+# Deliberately unpinned so a new checkout picks up current wheels. Last verified
+# end-to-end on Python 3.13.7 with pandas 3.0.3, numpy 2.4.6, scipy 1.18.0,
+# scikit-learn 1.9.0, SQLAlchemy 2.0.51, pydantic 2.13.4, lightgbm 4.6.0,
+# xgboost 3.3.0, shap 0.52.0. If a fresh install breaks, compare against these
+# before assuming the bug is in the code.
 
 # --- API ---
 fastapi
@@ -27,3 +33,9 @@ joblib
 # governorate boundaries. It also arrives transitively via scikit-learn, but
 # the map silently degrades to crude hexagons if it ever goes missing.
 scipy
+
+# --- Dev / test ---
+# Included so a fresh clone can run the test suite without a second install
+# step (CONTRIBUTING.md tells contributors to run pytest before a PR).
+pytest
+ruff
