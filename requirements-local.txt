@@ -23,3 +23,7 @@ xgboost
 lightgbm
 shap
 joblib
+# Declared explicitly: the seeder uses scipy.spatial.Voronoi to build the
+# governorate boundaries. It also arrives transitively via scikit-learn, but
+# the map silently degrades to crude hexagons if it ever goes missing.
+scipy

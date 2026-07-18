@@ -2,7 +2,15 @@
 rem ── Shared environment for SentinelleRx local run (called by other scripts) ──
 rem Runtime lives in %LOCALAPPDATA% (OUTSIDE OneDrive) to avoid sync corruption.
 for %%I in ("%~dp0..\..") do set "ROOT=%%~fI"
-set "RUNTIME=%LOCALAPPDATA%\SentinelleRx"
+
+rem RUNTIME can be pre-set to keep a second checkout isolated from the first
+rem (they would otherwise share one venv, database and node_modules):
+rem     set "SENTINELLE_RUNTIME=%LOCALAPPDATA%\SentinelleRx-fork"  &  run.bat
+if defined SENTINELLE_RUNTIME (
+  set "RUNTIME=%SENTINELLE_RUNTIME%"
+) else (
+  set "RUNTIME=%LOCALAPPDATA%\SentinelleRx"
+)
 set "VENV=%RUNTIME%\venv"
 set "PY=%VENV%\Scripts\python.exe"
 set "WEBDIR=%RUNTIME%\frontend"
