@@ -7,9 +7,9 @@ echo   SentinelleRx - One-time Setup  (SQLite, no Docker required)
 echo ================================================================
 echo   Runtime folder: %RUNTIME%
 echo.
-echo   This takes 20-30 minutes the first time. Step 5 (training)
-echo   is the long one and prints little while it works - that is
-echo   normal, not a hang. Later runs skip everything already done.
+echo   This takes 8-12 minutes the first time. Model training is
+echo   skipped: trained champions ship with the repository.
+echo   Later runs skip everything already done.
 echo.
 
 where python >nul 2>&1 || (echo [ERROR] Python not found on PATH. Install Python 3.12+ from python.org & pause & exit /b 1)
@@ -41,11 +41,12 @@ if exist "%RUNTIME%\.seeded" (
   echo seeded > "%RUNTIME%\.seeded"
 )
 
+rem Trained champions ship with the repository, so this normally skips. Delete
+rem ml\artifacts\ to force a full retrain on your own data.
 if exist "%ROOT%\ml\artifacts\shortage.joblib" (
-  echo [5/7] Models already trained - skipping.
+  echo [5/7] Trained models found - skipping training.
 ) else (
   echo [5/7] Training demand + shortage models ^(10-20 min - go get a coffee^)...
-  echo       Delete ml\artifacts\ later if you ever need to force a retrain.
   pushd "%ROOT%\ml"
   "%PY%" -m ml.train_all || (popd & echo [ERROR] training failed & pause & exit /b 1)
   popd

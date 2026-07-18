@@ -10,8 +10,16 @@ venv/
 mlruns/
 ml/reports/*.md
 !ml/reports/.gitkeep
-*.joblib
 *.pkl
+
+# Trained models: ship the ones scoring actually loads, so a fresh clone can
+# run the platform without a 10-20 minute training pass. The per-family
+# candidates stay out — `demand-champion-{h}` is a byte-identical copy of
+# whichever family won, so committing both would double the weight for nothing,
+# and the losing candidates' metrics are already recorded in `model_runs`.
+*.joblib
+!ml/artifacts/demand-champion-*.joblib
+!ml/artifacts/shortage.joblib
 
 # Node
 node_modules/

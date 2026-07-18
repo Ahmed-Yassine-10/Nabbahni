@@ -77,11 +77,14 @@ cd Nabbahni
 run.bat
 ```
 
-**First run takes 20–30 minutes** and needs no further input. Nothing is
-pre-baked in the repo, so it builds everything locally: virtualenv → Python
-packages → database → synthetic dataset → **model training (10–20 min, the
-long step)** → scoring → frontend build. Every later `run.bat` starts in under
-a minute.
+**First run takes 8–12 minutes** and needs no further input: virtualenv →
+Python packages → database → synthetic dataset → scoring → frontend build.
+Every later `run.bat` starts in under a minute.
+
+Model training — normally the 10–20 minute step — is skipped because the
+trained champions ship in [`ml/artifacts/`](ml/artifacts/README.md). They are
+trained on **synthetic** data: a convenience for running the demo, not
+validated models. Delete that folder to force a full retrain.
 
 > New contributor? Read **[CONTRIBUTING.md](CONTRIBUTING.md)** — it covers the
 > first-run timeline step by step, where runtime state lives, and the gotchas

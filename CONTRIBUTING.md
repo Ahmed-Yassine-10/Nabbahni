@@ -35,14 +35,19 @@ run builds all of it locally, which is why it is slow exactly once:
 | 1. Virtual environment | ~10 s | Creates `venv` in the runtime folder |
 | 2. Python packages | 2–4 min | Installs `requirements-local.txt` |
 | 3. Database schema | ~5 s | `create_all()` against SQLite |
-| 4. Seed synthetic data | ~1 min | 68 medications, 24 governorates, ~880k sales rows |
-| 5. **Train models** | **10–20 min** | XGBoost + LightGBM per horizon, shortage classifier |
+| 4. Seed synthetic data | ~1 min | 68 medications, 24 governorates, ~880k sales rows, ~9k lots |
+| 5. Train models | **skipped** | Trained champions ship in `ml/artifacts/` |
 | 6. Score predictions | ~1 min | Forecasts, risk levels, SHAP explanations, recommendations |
 | 7. Frontend install + build | 3–5 min | `npm install` then `next build` |
 
-**Total: roughly 20–30 minutes.** Step 5 is the long one and it prints little
-while it works — that is expected, not a hang. Every later `run.bat` skips
-steps 1–5 and starts in under a minute.
+**Total: roughly 8–12 minutes.** Training — normally the 10–20 minute step — is
+skipped because the champion models are committed. Every later `run.bat` starts
+in under a minute.
+
+The shipped models are trained on **synthetic** data and are a convenience for
+getting the demo running, not validated models — see
+[`ml/artifacts/README.md`](ml/artifacts/README.md). To retrain from scratch,
+delete `ml/artifacts/` and re-run `setup.bat`.
 
 ### Signing in
 
