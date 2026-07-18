@@ -1,0 +1,30 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        default: staging
+
+# Deploys the kustomize overlay to the selected cluster. Requires a KUBE_CONFIG
+# secret for the target cluster (placeholder — wire to your infrastructure).
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube-config || true
+          echo "KUBECONFIG=$HOME/.kube-config" >> $GITHUB_ENV
+      - name: Apply kustomize overlay
+        run: |
+          echo "Deploying overlay: infra/k8s/overlays/${{ inputs.environment }}"
+          kubectl apply -k infra/k8s/overlays/${{ inputs.environment }} --dry-run=client
+          # Remove --dry-run=client once a real cluster + KUBE_CONFIG are configured.

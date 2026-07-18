@@ -1,0 +1,42 @@
+name: backend-ci
+
+on:
+  push:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+  pull_request:
+    paths: ["backend/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: sentinelle
+          POSTGRES_PASSWORD: sentinelle_dev_pw
+          POSTGRES_DB: sentinellerx
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sentinelle"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://sentinelle:sentinelle_dev_pw@localhost:5432/sentinellerx
+      SECRET_KEY: ci-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        working-directory: backend
+        run: uv pip install --system -e ".[dev]"
+      - name: Lint
+        run: ruff check backend
+      - name: Migrate
+        working-directory: backend
+        run: alembic upgrade head
+      - name: Test
+        working-directory: backend
+        run: pytest -q

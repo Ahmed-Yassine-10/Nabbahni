@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-scoring
+spec:
+  # 02:00 daily — retrain-free scoring refresh of predictions/recommendations.
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: scoring
+              image: ghcr.io/sentinellerx/ml:latest
+              command: ["python", "-m", "ml.score"]
+              envFrom:
+                - secretRef: { name: sentinellerx-secrets }
+                - configMapRef: { name: sentinellerx-config }
+              resources:
+                requests: { cpu: "500m", memory: "1Gi" }
+                limits: { cpu: "2", memory: "4Gi" }

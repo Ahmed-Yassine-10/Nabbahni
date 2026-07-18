@@ -1,0 +1,1456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>*{margin:0;padding:0;}html,body{height:100%;background:#06100A;}</style>
+<title>SentinelleRx — Robot Narrator Deck</title>
+
+<style>
+/* ============================================================
+   SentinelleRx — narrated pitch show, ROBOT EDITION
+   Indigo night-lab identity, amber signal. Same scenes, same
+   animation grammar — narrated by an on-screen robot, with
+   optional real text-to-speech voice.
+   ============================================================ */
+
+:root{
+  --ink:      #06100A;
+  --panel:    #0C1A12;
+  --panel-2:  #12241A;
+  --line:     #1F3A2B;
+  --fog:      #85A392;
+  --text:     #E2EFE6;
+  --text-dim: #A7C2B1;
+  --signal:   #35C77F;
+  --signal-2: #7FF0B4;
+  --ok:       #4CAF6E;
+  --warn:     #D9A62E;
+  --hot:      #DD7A38;
+  --crit:     #D5455C;
+  --glass:    rgba(53,199,127,.07);
+  --shadow: 0 26px 60px -20px rgba(0,0,0,.75), 0 2px 0 rgba(255,255,255,.04) inset;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --ink:#DCE8DF; --panel:#FAFCFA; --panel-2:#EFF5F0; --line:#C7D8CC;
+    --fog:#587765; --text:#0D1A12; --text-dim:#3D5A49;
+    --signal:#128A54; --signal-2:#0A6B40; --glass:rgba(18,138,84,.06);
+    --shadow: 0 22px 50px -22px rgba(25,60,40,.35), 0 1px 0 rgba(255,255,255,.9) inset;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#06100A; --panel:#0C1A12; --panel-2:#12241A; --line:#1F3A2B;
+  --fog:#85A392; --text:#E2EFE6; --text-dim:#A7C2B1;
+  --signal:#35C77F; --signal-2:#7FF0B4; --glass:rgba(53,199,127,.07);
+  --shadow: 0 26px 60px -20px rgba(0,0,0,.75), 0 2px 0 rgba(255,255,255,.04) inset;
+}
+:root[data-theme="light"]{
+  --ink:#DCE8DF; --panel:#FAFCFA; --panel-2:#EFF5F0; --line:#C7D8CC;
+  --fog:#587765; --text:#0D1A12; --text-dim:#3D5A49;
+  --signal:#128A54; --signal-2:#0A6B40; --glass:rgba(18,138,84,.06);
+  --shadow: 0 22px 50px -22px rgba(25,60,40,.35), 0 1px 0 rgba(255,255,255,.9) inset;
+  }
+
+*{box-sizing:border-box;}
+
+.wrap{
+  position:fixed; inset:0; overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% -10%, color-mix(in srgb, var(--signal) 12%, transparent) 0%, transparent 55%),
+    var(--ink);
+  color:var(--text);
+  font-family:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#weather{ position:absolute; inset:0; width:100%; height:100%; opacity:.4; }
+
+/* ---------- 3D rig ---------- */
+.deck{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  perspective:2200px; perspective-origin:50% 45%;
+}
+.rig{ transform-style:preserve-3d; }
+.scene3d{
+  position:relative; width:1280px; height:720px;
+  transform-style:preserve-3d;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.scene3d.warp{ animation:warp .9s cubic-bezier(.3,.9,.3,1) both; }
+@keyframes warp{ 38%{ transform:translateZ(-190px) rotateX(2.2deg) scale(.985); } }
+
+.slide{
+  position:absolute; inset:0;
+  transform-style:preserve-3d;
+  background:linear-gradient(168deg, var(--panel) 0%, var(--panel-2) 100%);
+  border:1px solid var(--line);
+  border-radius:6px;
+  box-shadow:var(--shadow);
+  padding:34px 54px 28px;
+  display:flex; flex-direction:column; align-items:center;
+  overflow:hidden;                 /* nothing escapes the 1280×720 frame */
+  transition:transform .9s cubic-bezier(.34,1.28,.24,1), opacity .6s ease, filter .7s ease, border-radius .9s cubic-bezier(.34,1.28,.24,1);
+  will-change:transform,opacity,filter;
+}
+.slide[data-state="far"]{ opacity:0; pointer-events:none; border-radius:40px; }
+.slide[data-state="near"]{ opacity:.18; pointer-events:none; filter:saturate(.35) blur(2px); border-radius:30px; }
+.slide[data-state="live"]{ opacity:1; border-radius:16px; }
+
+/* ---------- scene anatomy ---------- */
+.eyebrow{
+  align-self:flex-start;
+  font-family:Consolas,"Cascadia Mono",monospace; font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--signal); margin:0 0 6px;
+  opacity:0; transition:opacity .6s ease .3s;
+}
+.slide[data-state="live"] .eyebrow{ opacity:1; }
+
+.stage{
+  flex:1 1 auto; width:100%; min-height:0;
+  display:flex; align-items:center; justify-content:center;
+  transform:translateZ(46px);
+  position:relative;
+  overflow:hidden;
+}
+/* the visual scales down rather than pushing the cards off-slide */
+.stage > *{ flex:0 0 auto; max-height:100%; }
+
+/* --- robot narrator + voice console --- */
+.voicebox{
+  display:flex; align-items:center; gap:18px;
+  width:100%; max-width:1010px;
+  transform:translateZ(70px);
+}
+.speech{
+  flex:1; min-height:72px;
+  display:flex; align-items:center; justify-content:flex-start;
+  text-align:left;
+  font-family:"Courier New",Courier,monospace;
+  font-size:21px; font-weight:700; line-height:1.5; letter-spacing:.01em;
+  color:var(--text);
+  border:1px solid var(--line); border-radius:14px 14px 14px 4px;
+  background:var(--glass);
+  padding:12px 22px;
+  position:relative;
+}
+.speech::before{
+  content:""; position:absolute; left:-9px; bottom:12px;
+  width:0; height:0;
+  border-top:8px solid transparent; border-bottom:4px solid transparent;
+  border-right:9px solid var(--line);
+}
+.speech > span{ display:inline; }
+
+/* --- the robot --- */
+.robot{
+  flex:0 0 auto; width:88px; position:relative;
+  animation:hover 3.2s ease-in-out infinite;
+}
+@keyframes hover{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+.robot .antenna{
+  width:3px; height:16px; background:var(--fog); margin:0 auto; border-radius:2px; position:relative;
+}
+.robot .antenna::after{
+  content:""; position:absolute; left:50%; top:-9px; transform:translateX(-50%);
+  width:10px; height:10px; border-radius:50%;
+  background:var(--signal);
+  box-shadow:0 0 12px var(--signal);
+  animation:antblink 1.6s ease infinite;
+}
+@keyframes antblink{ 0%,100%{ opacity:.5; } 50%{ opacity:1; } }
+.robot .head{
+  width:76px; height:60px; margin:0 auto;
+  background:linear-gradient(170deg, var(--panel-2), var(--panel));
+  border:2px solid var(--line); border-radius:18px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 10px 24px rgba(0,0,0,.4);
+}
+.robot .eyes{ display:flex; gap:16px; }
+.robot .eye{
+  width:12px; height:12px; border-radius:50%;
+  background:var(--signal-2);
+  box-shadow:0 0 8px var(--signal);
+  animation:eyeblink 4.6s steps(1) infinite;
+}
+.robot .eye.r{ animation-delay:.05s; }
+@keyframes eyeblink{ 0%,92%,100%{ transform:scaleY(1); } 94%,96%{ transform:scaleY(.12); } }
+.robot .mouth{
+  display:flex; gap:3px; align-items:center; height:12px;
+}
+.robot .mouth i{
+  width:4px; height:3px; border-radius:2px; background:var(--fog);
+  transition:height .2s ease;
+}
+.robot.talking .mouth i{ background:var(--signal-2); animation:speak .32s ease-in-out infinite alternate; }
+.robot.talking .mouth i:nth-child(1){ animation-delay:0s; }
+.robot.talking .mouth i:nth-child(2){ animation-delay:.08s; }
+.robot.talking .mouth i:nth-child(3){ animation-delay:.16s; }
+.robot.talking .mouth i:nth-child(4){ animation-delay:.06s; }
+.robot.talking .mouth i:nth-child(5){ animation-delay:.12s; }
+@keyframes speak{ from{ height:3px; } to{ height:12px; } }
+.robot .body{
+  width:44px; height:14px; margin:4px auto 0;
+  border:2px solid var(--line); border-bottom:none; border-radius:10px 10px 0 0;
+  background:var(--panel);
+}
+.robot .tag{
+  margin-top:5px; text-align:center;
+  font-family:"Courier New",monospace; font-size:8.5px; font-weight:700;
+  letter-spacing:.2em; color:var(--fog); text-transform:uppercase;
+}
+.speech .w{ opacity:1; }
+.speech .hl{
+  color:var(--signal-2);
+  text-shadow:0 0 14px color-mix(in srgb, var(--signal) 60%, transparent);
+}
+.speech .glitch{ color:var(--fog); opacity:.7; }
+.speech .caret{
+  display:inline-block; width:12px; height:1.05em; margin-left:4px; vertical-align:-.16em;
+  background:var(--signal); border-radius:1px;
+  animation:blink .7s steps(1) infinite;
+  box-shadow:0 0 10px color-mix(in srgb, var(--signal) 70%, transparent);
+}
+@keyframes blink{ 50%{ opacity:0; } }
+.speech .caret.done{ animation:blink 1.4s steps(1) infinite; opacity:.5; }
+
+.sub{
+  margin-top:6px; font-family:Consolas,monospace; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--fog); text-align:center;
+  opacity:0; transition:opacity .7s ease;
+  transform:translateZ(70px);
+}
+.sub.on{ opacity:1; }
+
+/* --- explanatory cards --- */
+.info{
+  display:grid; gap:10px; width:100%; margin-top:14px;
+  flex:0 0 auto;
+  transform:translateZ(40px);
+}
+.info.c2{ grid-template-columns:repeat(2,1fr); }
+.info.c3{ grid-template-columns:repeat(3,1fr); }
+.info.c4{ grid-template-columns:repeat(4,1fr); }
+/* six-card slides (the demo) get a tighter, shorter card */
+.info.dense{ gap:8px; }
+.info.dense .icard{ padding:10px 13px; gap:3px; }
+.info.dense .icard h3{ font-size:14.5px; }
+.info.dense .icard p{ font-size:13px; line-height:1.45; }
+.info.dense .icard .k{ font-size:10px; }
+.icard{
+  border:1px solid var(--line); background:var(--glass); border-radius:10px;
+  padding:15px 18px; display:flex; flex-direction:column; gap:6px;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .55s ease, transform .6s cubic-bezier(.25,.9,.3,1);
+}
+.slide[data-state="live"] .icard{ opacity:1; transform:translateY(0); }
+.slide[data-state="live"] .icard:nth-child(1){ transition-delay:.9s; }
+.slide[data-state="live"] .icard:nth-child(2){ transition-delay:1.05s; }
+.slide[data-state="live"] .icard:nth-child(3){ transition-delay:1.2s; }
+.slide[data-state="live"] .icard:nth-child(4){ transition-delay:1.35s; }
+.icard .k{
+  font-family:Consolas,monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--signal);
+}
+.icard h3{ margin:0; font-size:16.5px; font-weight:600; color:var(--text); letter-spacing:-.005em; }
+.icard p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--text-dim); }
+.icard b{ color:var(--text); font-weight:600; }
+
+/* streamable box text — words revealed by JS after the spoken line */
+.icard .sw, .chip .sw{ opacity:0; transition:opacity .18s ease; }
+.icard .sw.on, .chip .sw.on{ opacity:1; }
+@media (prefers-reduced-motion: reduce){
+  .icard .sw, .chip .sw{ opacity:1; transition:none; }
+}
+
+/* ============================================================
+   SCENE VISUALS
+   ============================================================ */
+
+.pill{
+  width:56px; height:23px; border-radius:13px;
+  background:linear-gradient(90deg, var(--signal) 50%, #EAF6EE 50%);
+  border:1px solid rgba(0,0,0,.25);
+  box-shadow:0 4px 10px rgba(0,0,0,.35);
+}
+
+/* --- radar --- */
+.radar{ position:relative; width:228px; height:228px; }
+.radar .ring{ position:absolute; inset:0; border:1px solid var(--line); border-radius:50%; }
+.radar .r2{ inset:18%; } .radar .r3{ inset:36%; }
+.radar .grid-h{ position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line); }
+.radar .grid-v{ position:absolute; top:0; bottom:0; left:50%; width:1px; background:var(--line); }
+.radar .sweep{
+  position:absolute; inset:0; border-radius:50%;
+  background:conic-gradient(from 0deg, color-mix(in srgb, var(--signal) 55%, transparent), transparent 22%);
+  animation:spin 3.4s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.radar .blip{
+  position:absolute; width:10px; height:10px; border-radius:50%;
+  background:var(--signal-2);
+  animation:blip 3.4s ease-out infinite;
+}
+@keyframes blip{
+  0%,8%{ opacity:0; transform:scale(.4); }
+  12%{ opacity:1; transform:scale(1.25); }
+  55%{ opacity:.6; transform:scale(1); }
+  100%{ opacity:0; }
+}
+.brand{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; }
+.brand .nm{
+  font-family:"Trebuchet MS","Segoe UI",sans-serif; font-weight:700; font-size:38px; letter-spacing:-.01em;
+  text-shadow:0 4px 30px var(--ink);
+}
+.brand .nm b{ color:var(--signal); font-weight:700; }
+
+/* --- shelf --- */
+.shelf{ display:flex; flex-direction:column; gap:20px; width:440px; position:relative; }
+.row{ position:relative; height:42px; border-bottom:3px solid var(--line); display:flex; align-items:flex-end; gap:18px; padding:0 10px 6px; }
+.row .pill{ animation:vanish 5.2s cubic-bezier(.5,-.4,.6,1) infinite; }
+.row .pill:nth-child(1){ animation-delay:.2s; } .row .pill:nth-child(2){ animation-delay:.7s; }
+.row .pill:nth-child(3){ animation-delay:1.2s; } .row .pill:nth-child(4){ animation-delay:1.7s; }
+.row .pill:nth-child(5){ animation-delay:2.2s; } .row .pill:nth-child(6){ animation-delay:2.7s; }
+.r-b .pill:nth-child(1){ animation-delay:.45s; } .r-b .pill:nth-child(2){ animation-delay:.95s; }
+.r-b .pill:nth-child(3){ animation-delay:1.45s; } .r-b .pill:nth-child(4){ animation-delay:1.95s; }
+.r-b .pill:nth-child(5){ animation-delay:2.45s; }
+@keyframes vanish{
+  0%,14%{ opacity:1; transform:scale(1); }
+  22%{ opacity:0; transform:scale(.2) translateY(-16px); }
+  78%{ opacity:0; transform:scale(.2); }
+  90%,100%{ opacity:1; transform:scale(1); }
+}
+.stamp{
+  position:absolute; left:50%; top:44%;
+  transform:translate(-50%,-50%) rotate(-9deg);
+  font-family:Consolas,monospace; font-weight:700; font-size:26px; letter-spacing:.18em;
+  color:var(--crit); border:3px solid var(--crit); border-radius:6px; padding:8px 20px;
+  animation:stamp 5.2s ease infinite; opacity:0; z-index:2;
+}
+@keyframes stamp{
+  0%,55%{ opacity:0; transform:translate(-50%,-50%) rotate(-9deg) scale(2.2); }
+  62%,86%{ opacity:1; transform:translate(-50%,-50%) rotate(-9deg) scale(1); }
+  96%,100%{ opacity:0; }
+}
+
+/* --- cloud raining pills --- */
+.sky{ position:relative; width:400px; height:216px; }
+.cloud{ position:absolute; left:50%; top:16px; transform:translateX(-50%); filter:drop-shadow(0 14px 30px rgba(0,0,0,.35)); }
+.cloud i{ position:absolute; background:var(--fog); border-radius:50%; opacity:.92; }
+.cloud .c1{ width:86px; height:86px; left:44px; top:0; }
+.cloud .c2{ width:64px; height:64px; left:0; top:24px; }
+.cloud .c3{ width:70px; height:70px; left:100px; top:18px; }
+.cloud .c4{ width:152px; height:52px; left:6px; top:42px; border-radius:30px; }
+.bolt{
+  position:absolute; left:50%; top:104px; margin-left:-40px;
+  width:0; height:0; border-left:13px solid transparent; border-right:8px solid transparent;
+  border-top:34px solid var(--warn);
+  animation:flash 5s ease infinite; opacity:0; transform:skewX(-14deg);
+}
+@keyframes flash{ 12%,16%{ opacity:1; } 0%,10%,18%,100%{ opacity:0; } }
+.drop{
+  position:absolute; top:108px; transform:scale(.55) rotate(90deg);
+  animation:fall 2.6s linear infinite; opacity:0;
+}
+@keyframes fall{
+  0%{ opacity:0; transform:translateY(0) scale(.55) rotate(90deg); }
+  12%{ opacity:1; } 85%{ opacity:1; }
+  100%{ opacity:0; transform:translateY(115px) scale(.55) rotate(90deg); }
+}
+.puddle{
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:230px; height:12px; border-radius:50%;
+  background:color-mix(in srgb, var(--signal) 30%, transparent);
+  animation:puddle 2.6s ease infinite;
+}
+@keyframes puddle{ 50%{ width:260px; opacity:.8; } }
+
+/* --- pipeline / timeline --- */
+.pipe{ display:flex; align-items:center; gap:0; width:100%; max-width:860px; }
+.node{ display:flex; flex-direction:column; align-items:center; gap:10px; flex:0 0 auto; }
+.node .bulb{
+  width:62px; height:62px; border-radius:50%;
+  border:2px solid var(--line); background:var(--glass);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; position:relative; color:var(--signal-2);
+}
+.node .bulb::after{
+  content:""; position:absolute; inset:-2px; border-radius:50%;
+  border:2px solid var(--signal); opacity:0;
+}
+.node .lbl{ font-family:Consolas,monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--fog); }
+.wire{ flex:1; height:2px; background:var(--line); position:relative; }
+.spark{
+  position:absolute; top:-5px; left:0; width:11px; height:11px; border-radius:50%;
+  background:var(--signal-2); box-shadow:0 0 14px var(--signal);
+  animation:travel 4.8s linear infinite;
+}
+@keyframes travel{ 0%{ left:-4%; opacity:0; } 5%{ opacity:1; } 95%{ opacity:1; } 100%{ left:100%; opacity:0; } }
+.node .bulb.p1::after{ animation:nodepulse 4.8s ease infinite .3s; }
+.node .bulb.p2::after{ animation:nodepulse 4.8s ease infinite 1.35s; }
+.node .bulb.p3::after{ animation:nodepulse 4.8s ease infinite 2.4s; }
+.node .bulb.p4::after{ animation:nodepulse 4.8s ease infinite 3.45s; }
+.node .bulb.p5::after{ animation:nodepulse 4.8s ease infinite 4.4s; }
+@keyframes nodepulse{ 0%,4%{ opacity:0; transform:scale(1);} 8%{ opacity:1; } 20%{ opacity:0; transform:scale(1.35);} 100%{opacity:0;} }
+
+/* --- forecast chart --- */
+.chartbox{ position:relative; width:760px; height:200px; }
+#fchart{ width:100%; height:100%; }
+.chartbadge{
+  position:absolute; font-family:Consolas,monospace; font-size:12px; letter-spacing:.08em;
+  background:var(--panel); border:1px solid var(--signal); color:var(--signal);
+  padding:5px 11px; border-radius:3px; box-shadow:0 8px 20px rgba(0,0,0,.35);
+  opacity:0; transition:opacity .5s ease 1.6s;
+}
+.slide[data-state="live"] .chartbadge{ opacity:1; }
+
+/* --- bilingual bubbles --- */
+.chat{ display:flex; flex-direction:column; gap:14px; width:620px; }
+.bub{
+  max-width:80%; padding:14px 20px; border-radius:16px; font-size:17px; line-height:1.4;
+  border:1px solid var(--line); background:var(--glass); position:relative;
+}
+.bub.fr{ align-self:flex-start; border-bottom-left-radius:4px; font-family:"Charter",Georgia,serif; }
+.bub.ar{ align-self:flex-end; border-bottom-right-radius:4px; direction:rtl; text-align:right; font-size:18px; }
+.bub .who{
+  position:absolute; top:-18px; font-family:Consolas,monospace; font-size:9px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--signal);
+}
+.bub.fr .who{ left:6px; } .bub.ar .who{ right:6px; }
+.shapbar{ display:flex; gap:7px; align-self:center; margin-top:2px; }
+.shapbar i{
+  height:7px; border-radius:4px; background:var(--signal); opacity:.9;
+  animation:shap 3.8s ease infinite;
+}
+.shapbar i:nth-child(1){ width:100px; } .shapbar i:nth-child(2){ width:70px; animation-delay:.15s; }
+.shapbar i:nth-child(3){ width:50px; animation-delay:.3s; } .shapbar i:nth-child(4){ width:32px; animation-delay:.45s; }
+.shapbar i:nth-child(5){ width:18px; animation-delay:.6s; }
+@keyframes shap{ 0%{ transform:scaleX(.2); transform-origin:left; } 18%,100%{ transform:scaleX(1); } }
+
+/* --- three portals --- */
+.devices{ display:flex; align-items:flex-end; gap:32px; transform:scale(.82); }
+.dev{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.dev .cap{ font-family:Consolas,monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--fog); }
+.frame{
+  border:2px solid var(--line); border-radius:10px; background:var(--ink);
+  padding:10px; box-shadow:0 18px 40px rgba(0,0,0,.4);
+}
+.monitor{ width:280px; height:180px; }
+.tablet{ width:196px; height:146px; }
+.phone{ width:104px; height:184px; border-radius:16px; }
+.ui{ width:100%; height:100%; border-radius:4px; background:var(--panel-2); padding:9px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
+.ui .bar{ height:7px; border-radius:4px; background:var(--line); }
+.ui .bar.b1{ width:60%; } .ui .bar.b2{ width:85%; } .ui .bar.b3{ width:45%; }
+.ui .map{ flex:1; border-radius:4px; background:var(--glass); position:relative; overflow:hidden; }
+.ui .map i{ position:absolute; width:9px; height:9px; border-radius:50%; animation:mapdot 2.8s ease infinite; }
+@keyframes mapdot{ 0%,100%{ transform:scale(.7); opacity:.5; } 50%{ transform:scale(1.3); opacity:1; } }
+.ui .chartline{ display:flex; align-items:flex-end; gap:4px; flex:1; }
+.ui .chartline i{ flex:1; background:var(--signal); border-radius:2px 2px 0 0; opacity:.85; animation:eq 2.2s ease infinite; }
+@keyframes eq{ 0%,100%{ transform:scaleY(.55); transform-origin:bottom; } 50%{ transform:scaleY(1); } }
+.ui .pin{
+  position:absolute; left:50%; top:40%; width:12px; height:12px; border-radius:50% 50% 50% 0;
+  background:var(--signal); transform:rotate(-45deg);
+  animation:pindrop 2.6s ease infinite;
+}
+@keyframes pindrop{ 0%{ transform:translateY(-26px) rotate(-45deg); opacity:0; } 20%,80%{ transform:translateY(0) rotate(-45deg); opacity:1; } 100%{ opacity:0; } }
+
+/* --- competitive matrix --- */
+.cmp{ display:grid; grid-template-columns:190px repeat(4,110px); gap:8px 10px; align-items:center;
+      font-family:Consolas,monospace; }
+.cmp .h{
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fog); text-align:center;
+  padding-bottom:4px;
+}
+.cmp .h.us{ color:var(--signal); font-weight:700; }
+.cmp .cap{ font-size:12px; color:var(--text-dim); text-align:right; padding-right:6px; }
+.cmp .cell{
+  height:30px; border:1px solid var(--line); border-radius:4px; background:var(--glass);
+  display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--fog);
+}
+.cmp .cell.yes{ border-color:var(--signal); color:var(--signal-2); background:color-mix(in srgb, var(--signal) 14%, transparent);
+  box-shadow:0 0 12px color-mix(in srgb, var(--signal) 25%, transparent); }
+.cmp .cell.no{ opacity:.45; }
+
+/* --- severity ramp (kept for impact framing on ask slide chips) --- */
+.chip{
+  font-family:Consolas,monospace; font-size:14px; letter-spacing:.06em;
+  border:1px solid var(--line); background:var(--glass); border-radius:20px; padding:8px 18px;
+  color:var(--text-dim);
+}
+.chip b{ color:var(--signal); font-weight:700; }
+.targets{ display:flex; gap:12px; justify-content:center; margin-top:8px; transform:translateZ(50px); }
+
+/* --- tunisia --- */
+.tn{ position:relative; width:168px; height:214px; }
+.tn svg{ width:100%; height:100%; }
+.tn .pinbig{
+  position:absolute; left:52%; top:9%;
+  width:22px; height:22px; border-radius:50% 50% 50% 0;
+  background:var(--signal); transform:rotate(-45deg);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);
+  animation:bigpin 1s cubic-bezier(.3,1.5,.4,1) both .8s;
+}
+@keyframes bigpin{ 0%{ transform:translateY(-220px) rotate(-45deg); opacity:0; } 100%{ transform:translateY(0) rotate(-45deg); opacity:1; } }
+.tn .pulse{
+  position:absolute; left:52%; top:9%; width:22px; height:22px; margin:5px 0 0 -1px;
+  border-radius:50%; border:2px solid var(--signal);
+  animation:pulse 2s ease-out infinite 1.8s; opacity:0;
+}
+@keyframes pulse{ 0%{ opacity:.9; transform:scale(.5); } 100%{ opacity:0; transform:scale(3.2); } }
+/* region risk dots — the PCT command-center view */
+.tn .city{
+  position:absolute; width:13px; height:13px; border-radius:50%;
+  animation:mapdot 2.8s ease infinite;
+}
+.tn .city::after{
+  content:attr(data-n);
+  position:absolute; left:17px; top:-2px;
+  font-family:Consolas,monospace; font-size:11px; letter-spacing:.08em;
+  color:var(--text-dim); white-space:nowrap;
+}
+
+/* ---------- HUD ---------- */
+.hud{
+  position:absolute; left:0; right:0; bottom:0; height:56px;
+  display:flex; align-items:center; gap:20px; padding:0 30px;
+  font-family:Consolas,monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--fog);
+  z-index:6;
+}
+.dots{ display:flex; gap:6px; flex:1; }
+.dot{
+  height:3px; flex:1; background:var(--line); border:none; padding:0; cursor:pointer;
+  border-radius:2px; transition:background .3s ease;
+}
+.dot:hover{ background:var(--fog); }
+.dot[aria-current="true"]{ background:var(--signal); }
+.dot:focus-visible{ outline:2px solid var(--signal); outline-offset:3px; }
+.nav{ display:flex; gap:8px; }
+.nav button, .theme, .play{
+  background:transparent; border:1px solid var(--line); color:var(--fog);
+  height:28px; border-radius:2px; cursor:pointer; font-family:Consolas,monospace; font-size:13px;
+  transition:border-color .2s ease, color .2s ease;
+}
+.nav button{ width:32px; }
+.nav button:hover, .theme:hover, .play:hover{ border-color:var(--signal); color:var(--signal); }
+.nav button:focus-visible, .theme:focus-visible, .play:focus-visible{ outline:2px solid var(--signal); outline-offset:2px; }
+.theme, .play{ padding:0 12px; letter-spacing:.14em; font-size:10px; text-transform:uppercase; }
+.play.on{ border-color:var(--signal); color:var(--signal); }
+.count{ color:var(--text); font-variant-numeric:tabular-nums; }
+.count b{ color:var(--signal); font-weight:400; }
+
+@media (prefers-reduced-motion: reduce){
+  #weather{ display:none; }
+  .slide, .scene3d{ transition-duration:.001ms; }
+  .scene3d.warp, .sweep, .blip, .row .pill, .stamp, .drop, .bolt, .puddle,
+  .spark, .bulb::after, .shapbar i, .map i, .chartline i,
+  .pin, .pinbig, .pulse{ animation:none !important; }
+  .icard{ opacity:1; transform:none; transition:none; }
+}
+</style>
+
+<div class="wrap">
+  <canvas id="weather"></canvas>
+
+  <div class="deck">
+    <div class="rig" id="rig">
+      <div class="scene3d" id="scene">
+
+        <!-- 1 · TITLE -->
+        <section class="slide"
+          data-line='HELLO. I AM |SENTINELLERX|. I PREDICT MEDICINE SHORTAGES BEFORE PATIENTS SUFFER.'
+          data-sub="Don't detect shortages. Prevent them. · Automate or Die — Healthcare &amp; Pharma">
+          <div class="eyebrow">SentinelleRx // boot</div>
+          <div class="stage">
+            <div class="radar">
+              <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+              <div class="grid-h"></div><div class="grid-v"></div>
+              <div class="sweep"></div>
+              <div class="blip" style="left:22%; top:30%;"></div>
+              <div class="blip" style="left:70%; top:18%; animation-delay:1.1s;"></div>
+              <div class="blip" style="left:62%; top:72%; animation-delay:2.2s;"></div>
+              <div class="brand"><div class="nm">Sentinelle<b>Rx</b></div></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+        </section>
+
+        <!-- 2 · PROBLEM STATEMENT -->
+        <section class="slide"
+          data-line='THE PROBLEM: PATIENTS WALK FROM PHARMACY TO PHARMACY. |NOBODY SEES THE SHORTAGE COMING.|'
+          data-sub="Patient → pharmacy → out of stock → search again">
+          <div class="eyebrow">01 · Problem statement</div>
+          <div class="stage">
+            <div class="shelf">
+              <div class="row"><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div></div>
+              <div class="row r-b"><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div></div>
+              <div class="stamp">RUPTURE</div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Patients</span><h3>They search, pharmacy after pharmacy</h3><p>A sick person visits <b>3, 4, 5 pharmacies</b> to find one medicine. Sometimes they give up.</p></div>
+            <div class="icard"><span class="k">Pharmacies</span><h3>They find out too late</h3><p>The shelf is already empty when the shortage is discovered. Too late to order — imports take <b>4 to 12 weeks</b>.</p></div>
+            <div class="icard"><span class="k">Central Pharmacy</span><h3>It reacts after the crisis</h3><p>Reports arrive weeks late. When the problem is visible, the time to act is <b>already gone</b>.</p></div>
+            <div class="icard"><span class="k">Our question</span><h3>Can we see it coming?</h3><p>What if we could predict shortages <b>weeks before</b> they happen — and act early?</p></div>
+          </div>
+        </section>
+
+        <!-- 3 · SOLUTION -->
+        <section class="slide"
+          data-line='MY SOLUTION: |PREDICT. EXPLAIN. ACT EARLY.| LIKE A WEATHER FORECAST FOR MEDICINES.'
+          data-sub="Stocks + sales + social signals → AI prediction → human validation → action">
+          <div class="eyebrow">02 · Our solution</div>
+          <div class="stage">
+            <div class="pipe">
+              <div class="node"><div class="bulb p1">⛁</div><div class="lbl">Data Hub</div></div>
+              <div class="wire"><div class="spark"></div></div>
+              <div class="node"><div class="bulb p2">〰</div><div class="lbl">Demand AI</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:1.1s;"></div></div>
+              <div class="node"><div class="bulb p3">◉</div><div class="lbl">Shortage AI</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:2.2s;"></div></div>
+              <div class="node"><div class="bulb p4">❝</div><div class="lbl">Explain AI</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:3.3s;"></div></div>
+              <div class="node"><div class="bulb p5">⚑</div><div class="lbl">Decide</div></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Module 1</span><h3>Data Hub</h3><p>All the data in one place: pharmacy stocks, <b>daily sales</b>, PCT central stock, supplier delays, weather and epidemics.</p></div>
+            <div class="icard"><span class="k">Modules 2–3</span><h3>Demand AI + Shortage AI</h3><p>I predict consumption — insulin: <b>2,000 → 2,700 units</b> in 3 weeks — and shortage risk: <b>Euthyrox, 87%</b>, around August 17.</p></div>
+            <div class="icard"><span class="k">Module 4</span><h3>Explainable AI</h3><p>I give the causes: consumption <b>+21%</b>, supplier late, central stock low, 3 similar shortages before.</p></div>
+            <div class="icard"><span class="k">Module 5</span><h3>Substitution engine</h3><p>Medicine unavailable? I propose alternatives <b>A, B, C</b> (WHO rules). The pharmacist always validates.</p></div>
+          </div>
+        </section>
+
+        <!-- 4 · INNOVATION -->
+        <section class="slide"
+          data-line='I AM CAREFUL. I NEVER |LEARN THE WRONG LESSON| FROM BAD DATA.'
+          data-sub="Explainable AI · no black box · humans always in control">
+          <div class="eyebrow">03 · Innovation</div>
+          <div class="stage">
+            <div class="chat">
+              <div class="bub fr" data-type="Euthyrox : risque de rupture 87 % — consommation +21 %, retard fournisseur."><span class="who">Pourquoi ?</span><span class="txt"></span></div>
+              <div class="bub ar" data-type="ارتفاع الطلب بنسبة ٢١٪ خلال ٣٠ يومًا"><span class="who">لماذا؟</span><span class="txt"></span></div>
+              <div class="shapbar"><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Clever</span><h3>I never learn the wrong lesson</h3><p>When a medicine is out of stock, sales look low. I correct this — so I <b>never believe demand fell</b> during a shortage.</p></div>
+            <div class="icard"><span class="k">Honest</span><h3>I give a range, not one number</h3><p>Best case, expected, worst case. You always see <b>how sure I am</b> — not just a guess.</p></div>
+            <div class="icard"><span class="k">Fast</span><h3>My reasons are ready in advance</h3><p>I write my explanations the moment I compute a prediction — reading them is <b>instant</b>.</p></div>
+            <div class="icard"><span class="k">Safe</span><h3>One rule can overrule me</h3><p>An essential medicine with less than <b>5 days of stock</b> is always CRITICAL. No debate, no exception.</p></div>
+          </div>
+        </section>
+
+        <!-- 5 · QUANTIFIED IMPACT -->
+        <section class="slide"
+          data-line='MY IMPACT: SHORTAGES PREDICTED |15 TO 30 DAYS EARLY.|'
+          data-sub="Tested on 825,000 rows of data · only 6% error at one week">
+          <div class="eyebrow">04 · Quantified impact</div>
+          <div class="stage">
+            <div class="chartbox">
+              <canvas id="fchart"></canvas>
+              <div class="chartbadge" style="right:4%; top:12%;">Insuline : 2 000 → 2 700 / semaine</div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Early</span><h3>15–30 days of warning</h3><p>Enough time to import or redistribute <b>before shelves are empty</b> — instead of reacting after.</p></div>
+            <div class="icard"><span class="k">Workload</span><h3>50% less pharmacist workload</h3><p>No more calling around to find medicines. Substitutes appear <b>in one click</b>.</p></div>
+            <div class="icard"><span class="k">Citizens</span><h3>1 search instead of 5 pharmacies</h3><p>People find where their medicine is available with <b>one search</b> on their phone.</p></div>
+            <div class="icard"><span class="k">Money</span><h3>Lower import costs</h3><p>Smarter planning means fewer <b>emergency imports</b> and less waste.</p></div>
+          </div>
+        </section>
+
+        <!-- 6 · FEASIBILITY -->
+        <section class="slide"
+          data-line='FEASIBILITY: I WAS BUILT IN |48 HOURS| WITH FREE, OPEN TOOLS.'
+          data-sub="Team of 4 · normal laptops · cost ≈ 0 TND">
+          <div class="eyebrow">05 · Feasibility</div>
+          <div class="stage">
+            <div class="pipe">
+              <div class="node"><div class="bulb p1">⛁</div><div class="lbl">H0–12</div></div>
+              <div class="wire"><div class="spark"></div></div>
+              <div class="node"><div class="bulb p2">⚙</div><div class="lbl">H12–24</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:1.4s;"></div></div>
+              <div class="node"><div class="bulb p3">▣</div><div class="lbl">H24–40</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:2.8s;"></div></div>
+              <div class="node"><div class="bulb p4">★</div><div class="lbl">H40–48</div></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Hours 0–12</span><h3>Build the data</h3><p>We generate a realistic Tunisia: <b>24 regions, 68 medicines, 2 years</b> of daily history.</p></div>
+            <div class="icard"><span class="k">Hours 12–24</span><h3>Train the AI</h3><p>We train and test the prediction models. Normal laptops — <b>no GPU needed</b>.</p></div>
+            <div class="icard"><span class="k">Hours 24–40</span><h3>Build the app</h3><p>API, national map, charts, alerts and explanations — <b>connected end to end</b>.</p></div>
+            <div class="icard"><span class="k">Hours 40–48</span><h3>Polish and demo</h3><p>Translations, demo script, one-command launch. Total tool cost: <b>zero</b>.</p></div>
+          </div>
+        </section>
+
+        <!-- 7 · ORIGINALITY -->
+        <section class="slide"
+          data-line='MY SECRET: I AM |A WEATHER SERVICE| FOR MEDICINES.'
+          data-sub="Simple colors everyone already understands">
+          <div class="eyebrow">06 · Originality</div>
+          <div class="stage">
+            <div class="sky">
+              <div class="cloud"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div>
+              <div class="bolt"></div>
+              <div class="drop pill" style="left:24%; animation-delay:0s;"></div>
+              <div class="drop pill" style="left:40%; animation-delay:.9s;"></div>
+              <div class="drop pill" style="left:56%; animation-delay:.4s;"></div>
+              <div class="drop pill" style="left:70%; animation-delay:1.4s;"></div>
+              <div class="drop pill" style="left:33%; animation-delay:1.9s;"></div>
+              <div class="puddle"></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">Simple</span><h3>Everyone understands weather</h3><p>Green, orange, red. A forecast for tomorrow. People <b>trust what they understand</b>.</p></div>
+            <div class="icard"><span class="k">Local</span><h3>Arabic from day one</h3><p>I explain myself in <b>Arabic and French</b> — not a translation added at the end.</p></div>
+            <div class="icard"><span class="k">Smart</span><h3>No data? No problem</h3><p>We built a <b>synthetic copy of Tunisia</b> to train and demo safely. Real data plugs in later.</p></div>
+          </div>
+        </section>
+
+        <!-- 8 · AUDIENCE & USE CASES -->
+        <section class="slide"
+          data-line='I SERVE |THREE USERS:| THE CENTRAL PHARMACY, THE PHARMACIST, AND THE CITIZEN.'
+          data-sub="One platform · three portals · one shared truth">
+          <div class="eyebrow">07 · Target audience &amp; use cases</div>
+          <div class="stage">
+            <div class="devices">
+              <div class="dev">
+                <div class="frame monitor"><div class="ui">
+                  <div class="bar b1"></div>
+                  <div class="map">
+                    <i style="left:20%; top:30%; background:var(--ok);"></i>
+                    <i style="left:45%; top:20%; background:var(--warn); animation-delay:.4s;"></i>
+                    <i style="left:60%; top:55%; background:var(--crit); animation-delay:.8s;"></i>
+                    <i style="left:30%; top:65%; background:var(--ok); animation-delay:1.2s;"></i>
+                    <i style="left:75%; top:35%; background:var(--hot); animation-delay:1.6s;"></i>
+                  </div>
+                </div></div>
+                <div class="cap">Command center</div>
+              </div>
+              <div class="dev">
+                <div class="frame tablet"><div class="ui">
+                  <div class="bar b2"></div>
+                  <div class="chartline"><i></i><i style="animation-delay:.2s;"></i><i style="animation-delay:.4s;"></i><i style="animation-delay:.6s;"></i><i style="animation-delay:.8s;"></i><i style="animation-delay:1s;"></i></div>
+                  <div class="bar b3"></div>
+                </div></div>
+                <div class="cap">Pharmacy</div>
+              </div>
+              <div class="dev">
+                <div class="frame phone"><div class="ui">
+                  <div class="bar b3"></div>
+                  <div class="map"><div class="pin"></div></div>
+                  <div class="bar b1"></div>
+                </div></div>
+                <div class="cap">Citizen</div>
+              </div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">Every day</span><h3>Central Pharmacy</h3><p>Predict shortages, <b>optimize imports</b>, validate my recommendations.</p></div>
+            <div class="icard"><span class="k">At the counter</span><h3>Pharmacies</h3><p>Receive alerts, order at the right time, get <b>substitute medicines</b>.</p></div>
+            <div class="icard"><span class="k">Any time</span><h3>Citizens &amp; doctors</h3><p>Search available medicines, get <b>restock notifications</b>. Free and anonymous.</p></div>
+          </div>
+        </section>
+
+        <!-- 9 · COMPETITIVE DIFFERENTIATION -->
+        <section class="slide"
+          data-line='OTHERS SHOW THE PAST. |I PREDICT THE FUTURE.|'
+          data-sub="Predictive + explainable + Arabic — nobody else does all three">
+          <div class="eyebrow">08 · Competitive differentiation</div>
+          <div class="stage">
+            <div class="cmp">
+              <div></div>
+              <div class="h">Excel + ERP</div><div class="h">Generic BI</div><div class="h">Med-finder apps</div><div class="h us">SentinelleRx</div>
+              <div class="cap">Predicts shortages</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell no">✕</div><div class="cell yes">✓</div>
+              <div class="cap">Explains its alerts</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell no">✕</div><div class="cell yes">✓</div>
+              <div class="cap">French + Arabic</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell">~</div><div class="cell yes">✓</div>
+              <div class="cap">State + pharmacy + citizen</div>
+              <div class="cell no">✕</div><div class="cell">~</div><div class="cell">~</div><div class="cell yes">✓</div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">Excel reports</span><h3>They describe last month</h3><p>Numbers arrive weeks late. I warn about <b>next month</b> — with reasons.</p></div>
+            <div class="icard"><span class="k">BI dashboards</span><h3>Beautiful charts of the past</h3><p>No prediction, no explanation, no Arabic. I am <b>the layer above</b> them.</p></div>
+            <div class="icard"><span class="k">Med-finder apps</span><h3>They help one patient today</h3><p>I protect <b>the whole country tomorrow</b> — and still help at the counter.</p></div>
+          </div>
+        </section>
+
+        <!-- 10 · DEMO SCENARIO -->
+        <section class="slide"
+          data-line='DEMO TIME. WATCH ME SAVE |INSULIN| — 35 DAYS BEFORE THE CRISIS.'
+          data-sub="The perfect scenario · from data to patient in 6 steps">
+          <div class="eyebrow">09 · Demo</div>
+          <div class="stage">
+            <div class="pipe">
+              <div class="node"><div class="bulb p1">⛁</div><div class="lbl">Data</div></div>
+              <div class="wire"><div class="spark"></div></div>
+              <div class="node"><div class="bulb p2">⚠</div><div class="lbl">Detect</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:.9s;"></div></div>
+              <div class="node"><div class="bulb p3">❝</div><div class="lbl">Explain</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:1.8s;"></div></div>
+              <div class="node"><div class="bulb p4">✎</div><div class="lbl">Propose</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:2.7s;"></div></div>
+              <div class="node"><div class="bulb p5">⚑</div><div class="lbl">Alert</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:3.6s;"></div></div>
+              <div class="node"><div class="bulb">☺</div><div class="lbl">Find</div></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="info c3 dense">
+            <div class="icard"><span class="k">Step 1</span><h3>Data goes in</h3><p>Stocks, sales and supplier data are <b>injected</b> into the platform.</p></div>
+            <div class="icard"><span class="k">Step 2</span><h3>I detect</h3><p>Risk of insulin shortage <b>in 35 days</b>.</p></div>
+            <div class="icard"><span class="k">Step 3</span><h3>I explain</h3><p>Consumption <b>+18%</b> · supplier late <b>12 days</b> · central stock low.</p></div>
+            <div class="icard"><span class="k">Step 4</span><h3>I propose</h3><p>Order <b>15,000 units</b> before July 28.</p></div>
+            <div class="icard"><span class="k">Step 5</span><h3>The pharmacist acts</h3><p>Local alert + <b>available substitutes</b>, ready to validate.</p></div>
+            <div class="icard"><span class="k">Step 6</span><h3>The patient finds it</h3><p>"Where is my medicine?" — open pharmacies <b>on the map</b>, 2 km away.</p></div>
+          </div>
+        </section>
+
+        <!-- 11 · THE ASK -->
+        <section class="slide"
+          data-line='GIVE ME |ONE REGION AND ONE FLU SEASON.| I WILL PROVE IT.'
+          data-sub="Pilot: Grand Tunis · 10–20 pharmacies + Central Pharmacy">
+          <div class="eyebrow">10 · The ask</div>
+          <div class="stage">
+            <div class="tn">
+              <svg viewBox="0 0 300 380" aria-hidden="true">
+                <path d="M150 12 L196 26 L208 62 L184 96 L196 128 L176 164 L188 210 L170 258 L178 300 L156 352 L138 368 L124 330 L132 282 L116 236 L128 190 L112 148 L124 104 L108 66 L126 30 Z"
+                      fill="var(--glass)" stroke="var(--signal)" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              <div class="pinbig"></div>
+              <div class="pulse"></div>
+              <div class="city" style="left:56%; top:16%; background:var(--ok);" data-n="Tunis"></div>
+              <div class="city" style="left:57%; top:46%; background:var(--hot); animation-delay:.6s;" data-n="Sfax"></div>
+              <div class="city" style="left:44%; top:66%; background:var(--crit); animation-delay:1.2s;" data-n="Gabès"></div>
+            </div>
+          </div>
+          <div class="voicebox">
+            <div class="robot" aria-hidden="true">
+              <div class="antenna"></div>
+              <div class="head">
+                <div class="eyes"><div class="eye"></div><div class="eye r"></div></div>
+                <div class="mouth"><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="body"></div>
+              <div class="tag">SRX-01</div>
+            </div>
+            <div class="speech"></div>
+          </div>
+          <div class="sub"></div>
+          <div class="targets">
+            <div class="chip"><b>15–30 days</b> of early warning</div>
+            <div class="chip"><b>7 of 10</b> shortages caught in advance</div>
+            <div class="chip"><b>20</b> actions validated by the Central Pharmacy</div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <span class="count"><b id="cur">01</b> / <span id="tot">10</span></span>
+    <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+    <button class="play on" id="playBtn" type="button">⏸ Auto</button>
+    <button class="play" id="voiceBtn" type="button">🔇 Voice</button>
+    <button class="theme" id="themeBtn" type="button">Theme</button>
+    <div class="nav">
+      <button type="button" id="prev" aria-label="Previous slide">←</button>
+      <button type="button" id="next" aria-label="Next slide">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var scene = document.getElementById('scene');
+  var rig = document.getElementById('rig');
+  var dots = document.getElementById('dots');
+  var cur = document.getElementById('cur');
+  var playBtn = document.getElementById('playBtn');
+  var i = 0;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playing = !reduce;
+  var streamToken = 0;
+  var advanceTimer = null;
+
+  document.getElementById('tot').textContent = String(slides.length).padStart(2,'0');
+
+  slides.forEach(function(s, n){
+    var b = document.createElement('button');
+    b.className = 'dot'; b.type = 'button';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Slide ' + (n+1));
+    b.addEventListener('click', function(){ userGo(n); });
+    dots.appendChild(b);
+  });
+  var dotEls = Array.prototype.slice.call(dots.children);
+
+  /* ============ streamable box text ============ */
+  /* wrap every word in the info cards / chips in a span */
+  function wrapWords(el){
+    Array.prototype.slice.call(el.childNodes).forEach(function(nd){
+      if (nd.nodeType === 3){
+        var frag = document.createDocumentFragment();
+        nd.textContent.split(/(\s+)/).forEach(function(tk){
+          if (!tk) return;
+          if (/^\s+$/.test(tk)){ frag.appendChild(document.createTextNode(tk)); }
+          else {
+            var sp = document.createElement('span');
+            sp.className = 'sw'; sp.textContent = tk;
+            frag.appendChild(sp);
+          }
+        });
+        el.replaceChild(frag, nd);
+      } else if (nd.nodeType === 1){ wrapWords(nd); }
+    });
+  }
+  slides.forEach(function(s){
+    Array.prototype.forEach.call(s.querySelectorAll('.icard h3, .icard p, .chip'), wrapWords);
+  });
+
+  function streamBoxes(slide, token){
+    var groups = slide.querySelectorAll('.icard, .chip');
+    Array.prototype.forEach.call(groups, function(g){
+      Array.prototype.forEach.call(g.querySelectorAll('.sw'), function(sp){ sp.classList.remove('on'); });
+    });
+    if (reduce){
+      Array.prototype.forEach.call(slide.querySelectorAll('.sw'), function(sp){ sp.classList.add('on'); });
+      return;
+    }
+    /* each box streams its own words; boxes start staggered */
+    Array.prototype.forEach.call(groups, function(g, gi){
+      var spans = g.querySelectorAll('.sw');
+      var idx = 0;
+      function tickw(){
+        if (token !== streamToken || idx >= spans.length) return;
+        spans[idx++].classList.add('on');
+        setTimeout(tickw, 26);
+      }
+      setTimeout(tickw, 1100 + gi * 420);
+    });
+  }
+
+  /* ============ real robot voice (Web Speech API) ============ */
+  /* Off by default — browsers require a user gesture before audio.
+     The Voice button is that gesture. Falls back silently if the
+     API is unavailable. */
+  var voiceOn = false;
+  var voiceBtn = document.getElementById('voiceBtn');
+
+  function narrate(raw){
+    if (!voiceOn || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    var text = raw.replace(/\|/g, ' ').replace(/\s+/g, ' ').trim();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95;
+    u.pitch = 0.6;              /* the robot register */
+    u.volume = 1;
+    /* prefer an English voice; the lines are English */
+    var vs = speechSynthesis.getVoices();
+    for (var v = 0; v < vs.length; v++){
+      if (/^en/i.test(vs[v].lang)){ u.voice = vs[v]; break; }
+    }
+    speechSynthesis.speak(u);
+  }
+
+  if (voiceBtn){
+    if (!window.speechSynthesis){
+      voiceBtn.disabled = true;
+      voiceBtn.textContent = 'No voice';
+    } else {
+      /* voices load async in some browsers */
+      speechSynthesis.getVoices();
+      voiceBtn.addEventListener('click', function(){
+        voiceOn = !voiceOn;
+        voiceBtn.classList.toggle('on', voiceOn);
+        voiceBtn.textContent = voiceOn ? '🔊 Voice' : '🔇 Voice';
+        if (!voiceOn) speechSynthesis.cancel();
+        else narrate(slides[i].dataset.line || '');
+      });
+    }
+  }
+
+  /* ============ robot voice streaming ============ */
+  /* Char-by-char teletype with a glitch scramble before each
+     character settles. |...| marks accent (glowing) spans. */
+  var GLYPHS = '▓▒░#%&@01<>/\\+=~';
+
+  function streamLine(slide, token, done){
+    var box = slide.querySelector('.speech');
+    var sub = slide.querySelector('.sub');
+    var robot = slide.querySelector('.robot');
+    var raw = slide.dataset.line || '';
+    box.innerHTML = '';
+    if (sub){ sub.classList.remove('on'); sub.textContent = slide.dataset.sub || ''; }
+    if (robot) robot.classList.add('talking');
+    narrate(raw);
+
+    /* build char list with accent flags */
+    var parts = raw.split('|');
+    var chars = [];
+    parts.forEach(function(part, pi){
+      var accent = pi % 2 === 1;
+      Array.from(part).forEach(function(ch){ chars.push({ c: ch, a: accent }); });
+    });
+
+    var caret = document.createElement('span');
+    caret.className = 'caret';
+    box.appendChild(caret);
+
+    if (reduce){
+      chars.forEach(function(ch){
+        var sp = document.createElement('span');
+        sp.className = 'w' + (ch.a ? ' hl' : '');
+        sp.textContent = ch.c;
+        box.insertBefore(sp, caret);
+      });
+      caret.classList.add('done');
+      if (sub) sub.classList.add('on');
+      if (robot) robot.classList.remove('talking');
+      if (done) done();
+      return;
+    }
+
+    var n = 0;
+    function next(){
+      if (token !== streamToken){
+        if (robot) robot.classList.remove('talking');
+        return;
+      }
+      if (n >= chars.length){
+        caret.classList.add('done');
+        if (sub) sub.classList.add('on');
+        /* keep the mouth moving while the TTS voice is still speaking */
+        if (robot){
+          if (voiceOn && window.speechSynthesis && speechSynthesis.speaking){
+            var mouthPoll = setInterval(function(){
+              if (token !== streamToken || !speechSynthesis.speaking){
+                robot.classList.remove('talking');
+                clearInterval(mouthPoll);
+              }
+            }, 200);
+          } else {
+            robot.classList.remove('talking');
+          }
+        }
+        if (done) done();
+        return;
+      }
+      var ch = chars[n++];
+      var sp = document.createElement('span');
+      box.insertBefore(sp, caret);
+
+      if (ch.c === ' '){
+        sp.className = 'w';
+        sp.innerHTML = '&nbsp;';
+        setTimeout(next, 24);
+        return;
+      }
+
+      /* glitch: flash 2 random glyphs, then settle */
+      sp.className = 'w glitch';
+      sp.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      setTimeout(function(){
+        if (token !== streamToken) return;
+        sp.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }, 16);
+      setTimeout(function(){
+        if (token !== streamToken) return;
+        sp.className = 'w' + (ch.a ? ' hl' : '');
+        sp.textContent = ch.c;
+      }, 34);
+
+      /* robotic cadence: metronomic, hard stops at punctuation */
+      var d = 30;
+      if (/[.!?…]/.test(ch.c)) d = 460;
+      else if (/[,;:—]/.test(ch.c)) d = 240;
+      setTimeout(next, d);
+    }
+    setTimeout(next, 500);
+  }
+
+  /* typewriter for chat bubbles (innovation slide) */
+  function typeBubbles(slide, token){
+    var bubs = slide.querySelectorAll('.bub');
+    var delay = 900;
+    Array.prototype.forEach.call(bubs, function(b){
+      var t = b.dataset.type || '';
+      var out = b.querySelector('.txt');
+      out.textContent = '';
+      var chars = Array.from(t);
+      chars.forEach(function(ch, ci){
+        setTimeout(function(){
+          if (token !== streamToken) return;
+          out.textContent += ch;
+        }, delay + ci * 30);
+      });
+      delay += chars.length * 30 + 500;
+    });
+  }
+
+  /* forecast chart draw-in */
+  function drawChart(token){
+    var cv = document.getElementById('fchart');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var css = getComputedStyle(document.documentElement);
+    var sig = css.getPropertyValue('--signal').trim() || '#35C77F';
+    var line = css.getPropertyValue('--line').trim() || '#1F3A2B';
+    var fog = css.getPropertyValue('--fog').trim() || '#85A392';
+
+    var N = 60, split = 38;
+    function base(x){ return H*0.62 - Math.sin(x*0.55)*18 - Math.sin(x*0.13)*28 - x*0.8; }
+    var pts = [];
+    for (var k = 0; k <= N; k++){
+      var x = (k / N) * (W - 40) + 20;
+      pts.push({ x: x, y: base(k) + Math.sin(k * 7.7) * 5 });
+    }
+
+    var start = null, dur = reduce ? 1 : 1500;
+    function frame(ts){
+      if (token !== streamToken) return;
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var e = 1 - Math.pow(1 - p, 3);
+      var upto = Math.floor(e * N);
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = line; ctx.lineWidth = 1;
+      for (var g = 1; g < 5; g++){
+        ctx.beginPath(); ctx.moveTo(20, H*g/5); ctx.lineTo(W-20, H*g/5); ctx.stroke();
+      }
+      var sx = pts[split].x;
+      ctx.setLineDash([4,5]); ctx.strokeStyle = fog;
+      ctx.beginPath(); ctx.moveTo(sx, 8); ctx.lineTo(sx, H-8); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = fog; ctx.font = '11px Consolas, monospace';
+      ctx.fillText('TODAY', sx + 8, 18);
+
+      if (upto > split){
+        ctx.beginPath();
+        for (var a = split; a <= upto; a++){
+          var spread = (a - split) * 1.4 + 5;
+          if (a === split) ctx.moveTo(pts[a].x, pts[a].y - spread);
+          else ctx.lineTo(pts[a].x, pts[a].y - spread);
+        }
+        for (var b2 = upto; b2 >= split; b2--){
+          var spread2 = (b2 - split) * 1.4 + 5;
+          ctx.lineTo(pts[b2].x, pts[b2].y + spread2);
+        }
+        ctx.closePath();
+        ctx.fillStyle = sig + '22';
+        ctx.fill();
+      }
+
+      ctx.lineWidth = 2.5; ctx.strokeStyle = sig; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      for (var c = 0; c <= Math.min(upto, split); c++){
+        if (c === 0) ctx.moveTo(pts[c].x, pts[c].y); else ctx.lineTo(pts[c].x, pts[c].y);
+      }
+      ctx.stroke();
+      if (upto > split){
+        ctx.setLineDash([7,6]);
+        ctx.beginPath();
+        for (var d2 = split; d2 <= upto; d2++){
+          if (d2 === split) ctx.moveTo(pts[d2].x, pts[d2].y); else ctx.lineTo(pts[d2].x, pts[d2].y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      var ep = pts[Math.min(upto, N)];
+      ctx.beginPath(); ctx.arc(ep.x, ep.y, 5, 0, Math.PI*2);
+      ctx.fillStyle = sig; ctx.fill();
+
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ============ slide lifecycle ============ */
+  function enter(slide){
+    streamToken++;
+    var token = streamToken;
+    if (advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; }
+
+    if (slide.querySelector('#fchart')) drawChart(token);
+    if (slide.querySelector('.bub')) typeBubbles(slide, token);
+    streamBoxes(slide, token);
+
+    streamLine(slide, token, function(){
+      if (playing && token === streamToken){
+        /* dwell long enough to read the cards */
+        var dwell = slide.querySelector('.icard') ? 9000 : 3200;
+        advanceTimer = setTimeout(function(){
+          if (token !== streamToken) return;
+          if (i < slides.length - 1) go(i + 1);
+          else setPlaying(false);
+        }, dwell);
+      }
+    });
+  }
+
+  function render(morph){
+    slides.forEach(function(s, n){
+      var d = n - i;
+      var a = Math.abs(d);
+      if (d === 0){
+        s.style.transform = 'translate3d(0,0,0) rotateY(0deg)';
+        if (s.dataset.state !== 'live'){
+          s.dataset.state = 'live';
+          enter(s);
+        }
+      } else {
+        s.style.transform = 'translate3d(' + (d * 62) + '%,0,' + (-320 - a * 260) + 'px) rotateY(' + (d * -34) + 'deg) scale(' + Math.max(.86, 1 - a * .05) + ')';
+        s.dataset.state = a === 1 ? 'near' : 'far';
+      }
+      s.setAttribute('aria-hidden', d === 0 ? 'false' : 'true');
+    });
+    dotEls.forEach(function(b, n){ b.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    cur.textContent = String(i+1).padStart(2,'0');
+    if (morph && !reduce){
+      scene.classList.remove('warp');
+      void scene.offsetWidth;
+      scene.classList.add('warp');
+    }
+  }
+
+  function go(n){
+    var next = Math.max(0, Math.min(slides.length - 1, n));
+    if (next === i) return;
+    i = next;
+    render(true);
+  }
+  function userGo(n){ setPlaying(false); go(n); }
+
+  function setPlaying(v){
+    playing = v;
+    playBtn.classList.toggle('on', v);
+    playBtn.textContent = v ? '⏸ Auto' : '▶ Auto';
+    if (!v && advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; }
+    if (v){ enter(slides[i]); }
+  }
+
+  document.getElementById('next').addEventListener('click', function(){ userGo(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ userGo(i-1); });
+  playBtn.addEventListener('click', function(){ setPlaying(!playing); });
+
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); userGo(i+1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); userGo(i-1); }
+    else if (e.key === ' '){ e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === 'Home'){ userGo(0); }
+    else if (e.key === 'End'){ userGo(slides.length - 1); }
+  });
+
+  function fit(){
+    var k = Math.min((window.innerWidth - 80) / 1280, (window.innerHeight - 120) / 720);
+    rig.style.transform = 'scale(' + Math.min(k, 1.15) + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  if (!reduce){
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+    window.addEventListener('pointermove', function(e){
+      tx = (e.clientY / window.innerHeight - .5) * 4.5;
+      ty = (e.clientX / window.innerWidth - .5) * -7;
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    function tick(){
+      cx += (tx - cx) * .07; cy += (ty - cy) * .07;
+      scene.style.transform = 'rotateX(' + cx.toFixed(3) + 'deg) rotateY(' + cy.toFixed(3) + 'deg)';
+      if (Math.abs(tx-cx) > .01 || Math.abs(ty-cy) > .01){ raf = requestAnimationFrame(tick); }
+      else { raf = null; }
+    }
+  }
+
+  var root = document.documentElement;
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var isDark = root.getAttribute('data-theme')
+      ? root.getAttribute('data-theme') === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    paint();
+  });
+
+  /* ambient isobar field */
+  var cv = document.getElementById('weather');
+  var ctx2 = cv.getContext('2d');
+  var W = 0, H = 0, dpr = 1, stroke = 'rgba(53,199,127,.13)';
+  function paint(){
+    var probe = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim();
+    if (probe.charAt(0) === '#' && probe.length >= 7){
+      var r = parseInt(probe.substr(1,2),16), g = parseInt(probe.substr(3,2),16), b = parseInt(probe.substr(5,2),16);
+      stroke = 'rgba(' + r + ',' + g + ',' + b + ',.13)';
+    }
+  }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function draw(ts){
+    var t = ts * 0.00006;
+    ctx2.clearRect(0, 0, W, H);
+    ctx2.lineWidth = 1; ctx2.strokeStyle = stroke;
+    for (var b = 0; b < 26; b++){
+      var base = (b / 26) * H * 1.35 - H * 0.18;
+      ctx2.beginPath();
+      for (var x = 0; x <= W; x += 12){
+        var u = x / W;
+        var y = base + Math.sin(u*3.1 + t + b*0.42)*34 + Math.sin(u*6.7 - t*1.6 + b*0.19)*15 + Math.sin(u*1.3 + t*0.6)*26;
+        if (x === 0) ctx2.moveTo(x, y); else ctx2.lineTo(x, y);
+      }
+      ctx2.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  if (!reduce){
+    window.addEventListener('resize', size);
+    size(); paint(); requestAnimationFrame(draw);
+  }
+
+  slides[0].dataset.state = '';
+  render(false);
+})();
+</script>
+</html>

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+mlruns/
+ml/reports/*.md
+!ml/reports/.gitkeep
+*.joblib
+*.pkl
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+npm-debug.log*
+yarn-error.log*
+
+# Env & secrets
+.env
+.env.local
+*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+# Office lock files (created while a .pptx/.docx is open)
+~$*
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Data artifacts
+data-generator/output/
+*.sqlite3
+*.db
+
+# Docker volumes (local)
+.volumes/

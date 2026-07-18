@@ -1,0 +1,25 @@
+# SentinelleRx — local (SQLite, no-Docker) Python dependencies.
+# Used by run.bat / setup.bat. Production uses backend/pyproject.toml + ml/pyproject.toml.
+
+# --- API ---
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0.36
+pydantic>=2.9
+pydantic-settings>=2.6
+python-jose[cryptography]
+httpx
+redis
+pika
+slowapi
+python-multipart
+prometheus-fastapi-instrumentator
+
+# --- ML ---
+numpy
+pandas
+scikit-learn
+xgboost
+lightgbm
+shap
+joblib

@@ -1,0 +1,35 @@
+{
+  "title": "SentinelleRx — ML Operations",
+  "uid": "srx-ml-ops",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-7d", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Hours since last scoring run",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "h" } },
+      "targets": [{ "expr": "(time() - sentinellerx_last_scoring_timestamp_seconds) / 3600", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Medications scored (last run)",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "targets": [{ "expr": "sentinellerx_scored_medications_total", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Critical shortages (current)",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+      "targets": [{ "expr": "sentinellerx_shortage_predictions{severity=\"critical\"}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Shortage predictions by severity",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+      "targets": [{ "expr": "sentinellerx_shortage_predictions", "legendFormat": "{{severity}}", "refId": "A" }]
+    }
+  ]
+}

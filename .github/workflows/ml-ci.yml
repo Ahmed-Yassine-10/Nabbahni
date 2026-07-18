@@ -1,0 +1,25 @@
+name: ml-ci
+
+on:
+  push:
+    paths: ["ml/**", ".github/workflows/ml-ci.yml"]
+  pull_request:
+    paths: ["ml/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (ml + backend for shared models)
+        run: |
+          pip install -e ml
+          pip install -e backend
+      - name: Lint
+        run: pip install ruff && ruff check ml
+      - name: Test
+        working-directory: ml
+        run: pytest -q

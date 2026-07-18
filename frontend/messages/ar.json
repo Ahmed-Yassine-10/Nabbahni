@@ -1,0 +1,91 @@
+{
+  "app": {
+    "name": "سنتينل آر إكس",
+    "tagline": "النشرة الجوية للأدوية في تونس"
+  },
+  "nav": {
+    "commandCenter": "مركز القيادة",
+    "dashboard": "لوحة القيادة",
+    "shortages": "الانقطاعات",
+    "recommendations": "التوصيات",
+    "supplyChain": "سلسلة التزويد",
+    "alerts": "التنبيهات",
+    "pharmacy": "بوابة الصيدلية",
+    "stock": "المخزون",
+    "orders": "الطلبات الموصى بها",
+    "substitutions": "البدائل",
+    "analytics": "التحليلات",
+    "citizen": "فضاء المواطن",
+    "search": "بحث",
+    "notifications": "الإشعارات",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج"
+  },
+  "severity": {
+    "green": "عادي",
+    "yellow": "يقظة",
+    "orange": "توتر",
+    "red": "مرتفع",
+    "critical": "حرج"
+  },
+  "availability": {
+    "available": "متوفر",
+    "tension": "توتر في التزويد",
+    "shortage": "انقطاع"
+  },
+  "commandCenter": {
+    "title": "مركز القيادة الوطني",
+    "subtitle": "رؤية وطنية لمخاطر الانقطاع",
+    "medsAtRisk": "أدوية معرضة للخطر",
+    "criticalCount": "تنبيهات حرجة",
+    "nationalCoverage": "متوسط التغطية الوطنية",
+    "openRecommendations": "توصيات قيد الانتظار",
+    "riskMap": "خريطة المخاطر حسب الولاية",
+    "riskBoard": "جدول المخاطر",
+    "days": "أيام"
+  },
+  "medication": {
+    "forecast": "توقع الطلب",
+    "explanation": "لماذا هذا الخطر؟",
+    "confidenceInterval": "مجال الثقة",
+    "trend": "الاتجاه",
+    "probability": "احتمال الانقطاع",
+    "estimatedDate": "التاريخ المقدر للانقطاع",
+    "coverage": "التغطية (أيام)"
+  },
+  "recommendations": {
+    "title": "التوصيات",
+    "confidence": "الثقة",
+    "financialImpact": "الأثر المالي (دينار)",
+    "expectedReduction": "الانخفاض المتوقع للانقطاع",
+    "validate": "المصادقة",
+    "reject": "الرفض",
+    "proposed": "مقترحة",
+    "validated": "مصادق عليها",
+    "rejected": "مرفوضة"
+  },
+  "pharmacy": {
+    "myStock": "مخزوني",
+    "localAlerts": "تنبيهات محلية",
+    "recommendedOrders": "الطلبات الموصى بها",
+    "suggestedAlternatives": "البدائل المقترحة",
+    "validatedByPharmacist": "يصادق الصيدلي دائمًا على القرار النهائي"
+  },
+  "citizen": {
+    "searchPlaceholder": "ابحث عن دواء (مثال: أموكسيسيلين)…",
+    "nearbyPharmacies": "الصيدليات القريبة",
+    "alternatives": "البدائل الممكنة",
+    "confirmWithPharmacist": "للتأكيد من طرف صيدليك",
+    "nationalStatus": "الحالة الوطنية",
+    "findNearby": "ابحث عن الصيدليات القريبة",
+    "km": "كم"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "error": "حدث خطأ",
+    "noData": "لا توجد بيانات",
+    "viewDetails": "عرض التفاصيل",
+    "back": "رجوع",
+    "all": "الكل"
+  }
+}

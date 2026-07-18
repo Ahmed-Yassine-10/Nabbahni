@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>*{margin:0;padding:0;}html,body{height:100%;background:#06100A;}</style>
+<title>SentinelleRx — Pitch Deck</title>
+
+<style>
+/* ============================================================
+   SentinelleRx — narrated pitch show, v3
+   Green "pharma terminal" identity. Robot voice streaming.
+   Structure follows hackathon judging: problem / solution /
+   innovation / impact / feasibility / originality / audience /
+   competition / ask.
+   ============================================================ */
+
+:root{
+  --ink:      #06100A;
+  --panel:    #0C1A12;
+  --panel-2:  #12241A;
+  --line:     #1F3A2B;
+  --fog:      #85A392;
+  --text:     #E2EFE6;
+  --text-dim: #A7C2B1;
+  --signal:   #35C77F;
+  --signal-2: #7FF0B4;
+  --ok:       #4CAF6E;
+  --warn:     #D9A62E;
+  --hot:      #DD7A38;
+  --crit:     #D5455C;
+  --glass:    rgba(53,199,127,.07);
+  --shadow: 0 26px 60px -20px rgba(0,0,0,.75), 0 2px 0 rgba(255,255,255,.04) inset;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --ink:#DCE8DF; --panel:#FAFCFA; --panel-2:#EFF5F0; --line:#C7D8CC;
+    --fog:#587765; --text:#0D1A12; --text-dim:#3D5A49;
+    --signal:#128A54; --signal-2:#0A6B40; --glass:rgba(18,138,84,.06);
+    --shadow: 0 22px 50px -22px rgba(25,60,40,.35), 0 1px 0 rgba(255,255,255,.9) inset;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#06100A; --panel:#0C1A12; --panel-2:#12241A; --line:#1F3A2B;
+  --fog:#85A392; --text:#E2EFE6; --text-dim:#A7C2B1;
+  --signal:#35C77F; --signal-2:#7FF0B4; --glass:rgba(53,199,127,.07);
+  --shadow: 0 26px 60px -20px rgba(0,0,0,.75), 0 2px 0 rgba(255,255,255,.04) inset;
+}
+:root[data-theme="light"]{
+  --ink:#DCE8DF; --panel:#FAFCFA; --panel-2:#EFF5F0; --line:#C7D8CC;
+  --fog:#587765; --text:#0D1A12; --text-dim:#3D5A49;
+  --signal:#128A54; --signal-2:#0A6B40; --glass:rgba(18,138,84,.06);
+  --shadow: 0 22px 50px -22px rgba(25,60,40,.35), 0 1px 0 rgba(255,255,255,.9) inset;
+}
+
+*{box-sizing:border-box;}
+
+.wrap{
+  position:fixed; inset:0; overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% -10%, color-mix(in srgb, var(--signal) 12%, transparent) 0%, transparent 55%),
+    var(--ink);
+  color:var(--text);
+  font-family:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#weather{ position:absolute; inset:0; width:100%; height:100%; opacity:.4; }
+
+/* ---------- 3D rig ---------- */
+.deck{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  perspective:2200px; perspective-origin:50% 45%;
+}
+.rig{ transform-style:preserve-3d; }
+.scene3d{
+  position:relative; width:1280px; height:720px;
+  transform-style:preserve-3d;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.scene3d.warp{ animation:warp .9s cubic-bezier(.3,.9,.3,1) both; }
+@keyframes warp{ 38%{ transform:translateZ(-190px) rotateX(2.2deg) scale(.985); } }
+
+.slide{
+  position:absolute; inset:0;
+  transform-style:preserve-3d;
+  background:linear-gradient(168deg, var(--panel) 0%, var(--panel-2) 100%);
+  border:1px solid var(--line);
+  border-radius:6px;
+  box-shadow:var(--shadow);
+  padding:40px 62px 34px;
+  display:flex; flex-direction:column; align-items:center;
+  transition:transform .9s cubic-bezier(.34,1.28,.24,1), opacity .6s ease, filter .7s ease, border-radius .9s cubic-bezier(.34,1.28,.24,1);
+  will-change:transform,opacity,filter;
+}
+.slide[data-state="far"]{ opacity:0; pointer-events:none; border-radius:28px; }
+.slide[data-state="near"]{ opacity:.18; pointer-events:none; filter:saturate(.35) blur(2px); border-radius:20px; }
+.slide[data-state="live"]{ opacity:1; }
+
+/* ---------- scene anatomy ---------- */
+.eyebrow{
+  align-self:flex-start;
+  font-family:Consolas,"Cascadia Mono",monospace; font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--signal); margin:0 0 6px;
+  opacity:0; transition:opacity .6s ease .3s;
+}
+.slide[data-state="live"] .eyebrow{ opacity:1; }
+
+.stage{
+  flex:1; width:100%; min-height:0;
+  display:flex; align-items:center; justify-content:center;
+  transform:translateZ(46px);
+  position:relative;
+}
+
+/* --- robot voice --- */
+.speech{
+  min-height:66px; max-width:980px; width:100%;
+  text-align:center;
+  font-family:Consolas,"Cascadia Mono","SF Mono",monospace;
+  font-size:22px; line-height:1.5; letter-spacing:.02em;
+  color:var(--text);
+  transform:translateZ(70px);
+}
+.speech .w{ opacity:1; }
+.speech .hl{
+  color:var(--signal-2);
+  text-shadow:0 0 14px color-mix(in srgb, var(--signal) 60%, transparent);
+}
+.speech .glitch{ color:var(--fog); opacity:.7; }
+.speech .caret{
+  display:inline-block; width:12px; height:1.05em; margin-left:4px; vertical-align:-.16em;
+  background:var(--signal); border-radius:1px;
+  animation:blink .7s steps(1) infinite;
+  box-shadow:0 0 10px color-mix(in srgb, var(--signal) 70%, transparent);
+}
+@keyframes blink{ 50%{ opacity:0; } }
+.speech .caret.done{ animation:blink 1.4s steps(1) infinite; opacity:.5; }
+
+.sub{
+  margin-top:6px; font-family:Consolas,monospace; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--fog); text-align:center;
+  opacity:0; transition:opacity .7s ease;
+  transform:translateZ(70px);
+}
+.sub.on{ opacity:1; }
+
+/* --- explanatory cards --- */
+.info{
+  display:grid; gap:12px; width:100%; margin-top:16px;
+  transform:translateZ(40px);
+}
+.info.c2{ grid-template-columns:repeat(2,1fr); }
+.info.c3{ grid-template-columns:repeat(3,1fr); }
+.info.c4{ grid-template-columns:repeat(4,1fr); }
+.icard{
+  border:1px solid var(--line); background:var(--glass); border-radius:4px;
+  padding:15px 18px; display:flex; flex-direction:column; gap:6px;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .55s ease, transform .6s cubic-bezier(.25,.9,.3,1);
+}
+.slide[data-state="live"] .icard{ opacity:1; transform:translateY(0); }
+.slide[data-state="live"] .icard:nth-child(1){ transition-delay:.9s; }
+.slide[data-state="live"] .icard:nth-child(2){ transition-delay:1.05s; }
+.slide[data-state="live"] .icard:nth-child(3){ transition-delay:1.2s; }
+.slide[data-state="live"] .icard:nth-child(4){ transition-delay:1.35s; }
+.icard .k{
+  font-family:Consolas,monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--signal);
+}
+.icard h3{ margin:0; font-size:16.5px; font-weight:600; color:var(--text); letter-spacing:-.005em; }
+.icard p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--text-dim); }
+.icard b{ color:var(--text); font-weight:600; }
+
+/* streamable box text — words revealed by JS after the spoken line */
+.icard .sw, .chip .sw{ opacity:0; transition:opacity .18s ease; }
+.icard .sw.on, .chip .sw.on{ opacity:1; }
+@media (prefers-reduced-motion: reduce){
+  .icard .sw, .chip .sw{ opacity:1; transition:none; }
+}
+
+/* ============================================================
+   SCENE VISUALS
+   ============================================================ */
+
+.pill{
+  width:56px; height:23px; border-radius:13px;
+  background:linear-gradient(90deg, var(--signal) 50%, #EAF6EE 50%);
+  border:1px solid rgba(0,0,0,.25);
+  box-shadow:0 4px 10px rgba(0,0,0,.35);
+}
+
+/* --- radar --- */
+.radar{ position:relative; width:250px; height:250px; }
+.radar .ring{ position:absolute; inset:0; border:1px solid var(--line); border-radius:50%; }
+.radar .r2{ inset:18%; } .radar .r3{ inset:36%; }
+.radar .grid-h{ position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line); }
+.radar .grid-v{ position:absolute; top:0; bottom:0; left:50%; width:1px; background:var(--line); }
+.radar .sweep{
+  position:absolute; inset:0; border-radius:50%;
+  background:conic-gradient(from 0deg, color-mix(in srgb, var(--signal) 55%, transparent), transparent 22%);
+  animation:spin 3.4s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.radar .blip{
+  position:absolute; width:10px; height:10px; border-radius:50%;
+  background:var(--signal-2);
+  animation:blip 3.4s ease-out infinite;
+}
+@keyframes blip{
+  0%,8%{ opacity:0; transform:scale(.4); }
+  12%{ opacity:1; transform:scale(1.25); }
+  55%{ opacity:.6; transform:scale(1); }
+  100%{ opacity:0; }
+}
+.brand{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; }
+.brand .nm{
+  font-family:"Charter",Palatino,Georgia,serif; font-weight:700; font-size:40px; letter-spacing:-.02em;
+  text-shadow:0 4px 30px var(--ink);
+}
+.brand .nm b{ color:var(--signal); font-weight:700; }
+
+/* --- shelf --- */
+.shelf{ display:flex; flex-direction:column; gap:24px; width:480px; position:relative; }
+.row{ position:relative; height:42px; border-bottom:3px solid var(--line); display:flex; align-items:flex-end; gap:18px; padding:0 10px 6px; }
+.row .pill{ animation:vanish 5.2s cubic-bezier(.5,-.4,.6,1) infinite; }
+.row .pill:nth-child(1){ animation-delay:.2s; } .row .pill:nth-child(2){ animation-delay:.7s; }
+.row .pill:nth-child(3){ animation-delay:1.2s; } .row .pill:nth-child(4){ animation-delay:1.7s; }
+.row .pill:nth-child(5){ animation-delay:2.2s; } .row .pill:nth-child(6){ animation-delay:2.7s; }
+.r-b .pill:nth-child(1){ animation-delay:.45s; } .r-b .pill:nth-child(2){ animation-delay:.95s; }
+.r-b .pill:nth-child(3){ animation-delay:1.45s; } .r-b .pill:nth-child(4){ animation-delay:1.95s; }
+.r-b .pill:nth-child(5){ animation-delay:2.45s; }
+@keyframes vanish{
+  0%,14%{ opacity:1; transform:scale(1); }
+  22%{ opacity:0; transform:scale(.2) translateY(-16px); }
+  78%{ opacity:0; transform:scale(.2); }
+  90%,100%{ opacity:1; transform:scale(1); }
+}
+.stamp{
+  position:absolute; left:50%; top:44%;
+  transform:translate(-50%,-50%) rotate(-9deg);
+  font-family:Consolas,monospace; font-weight:700; font-size:26px; letter-spacing:.18em;
+  color:var(--crit); border:3px solid var(--crit); border-radius:6px; padding:8px 20px;
+  animation:stamp 5.2s ease infinite; opacity:0; z-index:2;
+}
+@keyframes stamp{
+  0%,55%{ opacity:0; transform:translate(-50%,-50%) rotate(-9deg) scale(2.2); }
+  62%,86%{ opacity:1; transform:translate(-50%,-50%) rotate(-9deg) scale(1); }
+  96%,100%{ opacity:0; }
+}
+
+/* --- cloud raining pills --- */
+.sky{ position:relative; width:430px; height:250px; }
+.cloud{ position:absolute; left:50%; top:16px; transform:translateX(-50%); filter:drop-shadow(0 14px 30px rgba(0,0,0,.35)); }
+.cloud i{ position:absolute; background:var(--fog); border-radius:50%; opacity:.92; }
+.cloud .c1{ width:86px; height:86px; left:44px; top:0; }
+.cloud .c2{ width:64px; height:64px; left:0; top:24px; }
+.cloud .c3{ width:70px; height:70px; left:100px; top:18px; }
+.cloud .c4{ width:152px; height:52px; left:6px; top:42px; border-radius:30px; }
+.bolt{
+  position:absolute; left:50%; top:104px; margin-left:-40px;
+  width:0; height:0; border-left:13px solid transparent; border-right:8px solid transparent;
+  border-top:34px solid var(--warn);
+  animation:flash 5s ease infinite; opacity:0; transform:skewX(-14deg);
+}
+@keyframes flash{ 12%,16%{ opacity:1; } 0%,10%,18%,100%{ opacity:0; } }
+.drop{
+  position:absolute; top:108px; transform:scale(.55) rotate(90deg);
+  animation:fall 2.6s linear infinite; opacity:0;
+}
+@keyframes fall{
+  0%{ opacity:0; transform:translateY(0) scale(.55) rotate(90deg); }
+  12%{ opacity:1; } 85%{ opacity:1; }
+  100%{ opacity:0; transform:translateY(115px) scale(.55) rotate(90deg); }
+}
+.puddle{
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:230px; height:12px; border-radius:50%;
+  background:color-mix(in srgb, var(--signal) 30%, transparent);
+  animation:puddle 2.6s ease infinite;
+}
+@keyframes puddle{ 50%{ width:260px; opacity:.8; } }
+
+/* --- pipeline / timeline --- */
+.pipe{ display:flex; align-items:center; gap:0; width:100%; max-width:860px; }
+.node{ display:flex; flex-direction:column; align-items:center; gap:10px; flex:0 0 auto; }
+.node .bulb{
+  width:62px; height:62px; border-radius:50%;
+  border:2px solid var(--line); background:var(--glass);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; position:relative; color:var(--signal-2);
+}
+.node .bulb::after{
+  content:""; position:absolute; inset:-2px; border-radius:50%;
+  border:2px solid var(--signal); opacity:0;
+}
+.node .lbl{ font-family:Consolas,monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--fog); }
+.wire{ flex:1; height:2px; background:var(--line); position:relative; }
+.spark{
+  position:absolute; top:-5px; left:0; width:11px; height:11px; border-radius:50%;
+  background:var(--signal-2); box-shadow:0 0 14px var(--signal);
+  animation:travel 4.8s linear infinite;
+}
+@keyframes travel{ 0%{ left:-4%; opacity:0; } 5%{ opacity:1; } 95%{ opacity:1; } 100%{ left:100%; opacity:0; } }
+.node .bulb.p1::after{ animation:nodepulse 4.8s ease infinite .3s; }
+.node .bulb.p2::after{ animation:nodepulse 4.8s ease infinite 1.35s; }
+.node .bulb.p3::after{ animation:nodepulse 4.8s ease infinite 2.4s; }
+.node .bulb.p4::after{ animation:nodepulse 4.8s ease infinite 3.45s; }
+.node .bulb.p5::after{ animation:nodepulse 4.8s ease infinite 4.4s; }
+@keyframes nodepulse{ 0%,4%{ opacity:0; transform:scale(1);} 8%{ opacity:1; } 20%{ opacity:0; transform:scale(1.35);} 100%{opacity:0;} }
+
+/* --- forecast chart --- */
+.chartbox{ position:relative; width:780px; height:236px; }
+#fchart{ width:100%; height:100%; }
+.chartbadge{
+  position:absolute; font-family:Consolas,monospace; font-size:12px; letter-spacing:.08em;
+  background:var(--panel); border:1px solid var(--signal); color:var(--signal);
+  padding:5px 11px; border-radius:3px; box-shadow:0 8px 20px rgba(0,0,0,.35);
+  opacity:0; transition:opacity .5s ease 1.6s;
+}
+.slide[data-state="live"] .chartbadge{ opacity:1; }
+
+/* --- bilingual bubbles --- */
+.chat{ display:flex; flex-direction:column; gap:18px; width:640px; }
+.bub{
+  max-width:80%; padding:14px 20px; border-radius:16px; font-size:17px; line-height:1.4;
+  border:1px solid var(--line); background:var(--glass); position:relative;
+}
+.bub.fr{ align-self:flex-start; border-bottom-left-radius:4px; font-family:"Charter",Georgia,serif; }
+.bub.ar{ align-self:flex-end; border-bottom-right-radius:4px; direction:rtl; text-align:right; font-size:18px; }
+.bub .who{
+  position:absolute; top:-18px; font-family:Consolas,monospace; font-size:9px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--signal);
+}
+.bub.fr .who{ left:6px; } .bub.ar .who{ right:6px; }
+.shapbar{ display:flex; gap:7px; align-self:center; margin-top:2px; }
+.shapbar i{
+  height:7px; border-radius:4px; background:var(--signal); opacity:.9;
+  animation:shap 3.8s ease infinite;
+}
+.shapbar i:nth-child(1){ width:100px; } .shapbar i:nth-child(2){ width:70px; animation-delay:.15s; }
+.shapbar i:nth-child(3){ width:50px; animation-delay:.3s; } .shapbar i:nth-child(4){ width:32px; animation-delay:.45s; }
+.shapbar i:nth-child(5){ width:18px; animation-delay:.6s; }
+@keyframes shap{ 0%{ transform:scaleX(.2); transform-origin:left; } 18%,100%{ transform:scaleX(1); } }
+
+/* --- three portals --- */
+.devices{ display:flex; align-items:flex-end; gap:36px; transform:scale(.92); }
+.dev{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.dev .cap{ font-family:Consolas,monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--fog); }
+.frame{
+  border:2px solid var(--line); border-radius:10px; background:var(--ink);
+  padding:10px; box-shadow:0 18px 40px rgba(0,0,0,.4);
+}
+.monitor{ width:280px; height:180px; }
+.tablet{ width:196px; height:146px; }
+.phone{ width:104px; height:184px; border-radius:16px; }
+.ui{ width:100%; height:100%; border-radius:4px; background:var(--panel-2); padding:9px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
+.ui .bar{ height:7px; border-radius:4px; background:var(--line); }
+.ui .bar.b1{ width:60%; } .ui .bar.b2{ width:85%; } .ui .bar.b3{ width:45%; }
+.ui .map{ flex:1; border-radius:4px; background:var(--glass); position:relative; overflow:hidden; }
+.ui .map i{ position:absolute; width:9px; height:9px; border-radius:50%; animation:mapdot 2.8s ease infinite; }
+@keyframes mapdot{ 0%,100%{ transform:scale(.7); opacity:.5; } 50%{ transform:scale(1.3); opacity:1; } }
+.ui .chartline{ display:flex; align-items:flex-end; gap:4px; flex:1; }
+.ui .chartline i{ flex:1; background:var(--signal); border-radius:2px 2px 0 0; opacity:.85; animation:eq 2.2s ease infinite; }
+@keyframes eq{ 0%,100%{ transform:scaleY(.55); transform-origin:bottom; } 50%{ transform:scaleY(1); } }
+.ui .pin{
+  position:absolute; left:50%; top:40%; width:12px; height:12px; border-radius:50% 50% 50% 0;
+  background:var(--signal); transform:rotate(-45deg);
+  animation:pindrop 2.6s ease infinite;
+}
+@keyframes pindrop{ 0%{ transform:translateY(-26px) rotate(-45deg); opacity:0; } 20%,80%{ transform:translateY(0) rotate(-45deg); opacity:1; } 100%{ opacity:0; } }
+
+/* --- competitive matrix --- */
+.cmp{ display:grid; grid-template-columns:190px repeat(4,110px); gap:8px 10px; align-items:center;
+      font-family:Consolas,monospace; }
+.cmp .h{
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fog); text-align:center;
+  padding-bottom:4px;
+}
+.cmp .h.us{ color:var(--signal); font-weight:700; }
+.cmp .cap{ font-size:12px; color:var(--text-dim); text-align:right; padding-right:6px; }
+.cmp .cell{
+  height:30px; border:1px solid var(--line); border-radius:4px; background:var(--glass);
+  display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--fog);
+}
+.cmp .cell.yes{ border-color:var(--signal); color:var(--signal-2); background:color-mix(in srgb, var(--signal) 14%, transparent);
+  box-shadow:0 0 12px color-mix(in srgb, var(--signal) 25%, transparent); }
+.cmp .cell.no{ opacity:.45; }
+
+/* --- severity ramp (kept for impact framing on ask slide chips) --- */
+.chip{
+  font-family:Consolas,monospace; font-size:14px; letter-spacing:.06em;
+  border:1px solid var(--line); background:var(--glass); border-radius:20px; padding:8px 18px;
+  color:var(--text-dim);
+}
+.chip b{ color:var(--signal); font-weight:700; }
+.targets{ display:flex; gap:12px; justify-content:center; margin-top:8px; transform:translateZ(50px); }
+
+/* --- tunisia --- */
+.tn{ position:relative; width:200px; height:254px; }
+.tn svg{ width:100%; height:100%; }
+.tn .pinbig{
+  position:absolute; left:52%; top:9%;
+  width:22px; height:22px; border-radius:50% 50% 50% 0;
+  background:var(--signal); transform:rotate(-45deg);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);
+  animation:bigpin 1s cubic-bezier(.3,1.5,.4,1) both .8s;
+}
+@keyframes bigpin{ 0%{ transform:translateY(-220px) rotate(-45deg); opacity:0; } 100%{ transform:translateY(0) rotate(-45deg); opacity:1; } }
+.tn .pulse{
+  position:absolute; left:52%; top:9%; width:22px; height:22px; margin:5px 0 0 -1px;
+  border-radius:50%; border:2px solid var(--signal);
+  animation:pulse 2s ease-out infinite 1.8s; opacity:0;
+}
+@keyframes pulse{ 0%{ opacity:.9; transform:scale(.5); } 100%{ opacity:0; transform:scale(3.2); } }
+
+/* ---------- HUD ---------- */
+.hud{
+  position:absolute; left:0; right:0; bottom:0; height:56px;
+  display:flex; align-items:center; gap:20px; padding:0 30px;
+  font-family:Consolas,monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--fog);
+  z-index:6;
+}
+.dots{ display:flex; gap:6px; flex:1; }
+.dot{
+  height:3px; flex:1; background:var(--line); border:none; padding:0; cursor:pointer;
+  border-radius:2px; transition:background .3s ease;
+}
+.dot:hover{ background:var(--fog); }
+.dot[aria-current="true"]{ background:var(--signal); }
+.dot:focus-visible{ outline:2px solid var(--signal); outline-offset:3px; }
+.nav{ display:flex; gap:8px; }
+.nav button, .theme, .play{
+  background:transparent; border:1px solid var(--line); color:var(--fog);
+  height:28px; border-radius:2px; cursor:pointer; font-family:Consolas,monospace; font-size:13px;
+  transition:border-color .2s ease, color .2s ease;
+}
+.nav button{ width:32px; }
+.nav button:hover, .theme:hover, .play:hover{ border-color:var(--signal); color:var(--signal); }
+.nav button:focus-visible, .theme:focus-visible, .play:focus-visible{ outline:2px solid var(--signal); outline-offset:2px; }
+.theme, .play{ padding:0 12px; letter-spacing:.14em; font-size:10px; text-transform:uppercase; }
+.play.on{ border-color:var(--signal); color:var(--signal); }
+.count{ color:var(--text); font-variant-numeric:tabular-nums; }
+.count b{ color:var(--signal); font-weight:400; }
+
+@media (prefers-reduced-motion: reduce){
+  #weather{ display:none; }
+  .slide, .scene3d{ transition-duration:.001ms; }
+  .scene3d.warp, .sweep, .blip, .row .pill, .stamp, .drop, .bolt, .puddle,
+  .spark, .bulb::after, .shapbar i, .map i, .chartline i,
+  .pin, .pinbig, .pulse{ animation:none !important; }
+  .icard{ opacity:1; transform:none; transition:none; }
+}
+</style>
+
+<div class="wrap">
+  <canvas id="weather"></canvas>
+
+  <div class="deck">
+    <div class="rig" id="rig">
+      <div class="scene3d" id="scene">
+
+        <!-- 1 · TITLE -->
+        <section class="slide"
+          data-line='SYSTEM ONLINE. THIS IS |SENTINELLERX| — THE WEATHER FORECAST FOR TUNISIA&apos;S MEDICINES.'
+          data-sub="La météo des médicaments · نشرة توقعات الأدوية">
+          <div class="eyebrow">SentinelleRx // boot</div>
+          <div class="stage">
+            <div class="radar">
+              <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+              <div class="grid-h"></div><div class="grid-v"></div>
+              <div class="sweep"></div>
+              <div class="blip" style="left:22%; top:30%;"></div>
+              <div class="blip" style="left:70%; top:18%; animation-delay:1.1s;"></div>
+              <div class="blip" style="left:62%; top:72%; animation-delay:2.2s;"></div>
+              <div class="brand"><div class="nm">Sentinelle<b>Rx</b></div></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+        </section>
+
+        <!-- 2 · PROBLEM STATEMENT -->
+        <section class="slide"
+          data-line='PROBLEM DETECTED: SHORTAGES ARE DISCOVERED |AT THE COUNTER| — BY THE PATIENT.'
+          data-sub="No national forecast · no early warning · no explainable basis to act">
+          <div class="eyebrow">01 · Problem statement</div>
+          <div class="stage">
+            <div class="shelf">
+              <div class="row"><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div></div>
+              <div class="row r-b"><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div><div class="pill"></div></div>
+              <div class="stamp">RUPTURE</div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Fragmented</span><h3>Three ledgers, zero shared view</h3><p>PCT, <b>~2,000+ pharmacies</b> and 8 major importers each hold a slice of the truth. Nobody sees the national picture in time.</p></div>
+            <div class="icard"><span class="k">Slow by design</span><h3>Import lead times: 4–12 weeks</h3><p>By the time a gap appears in monthly reports, the reaction window is already spent. Procurement starts <b>after</b> the stockout.</p></div>
+            <div class="icard"><span class="k">Concrete case</span><h3>Flu season, amoxicillin</h3><p>Demand can jump <b>+20% in 30 days</b>. Today the first national signal is an empty shelf in Tunis — and a patient sent away.</p></div>
+            <div class="icard"><span class="k">The stakes</span><h3>Essential medicines first</h3><p>Shortage episodes cluster on essentials — antibiotics, insulin, cardio. The cost of each missed week is measured in patients, not dinars.</p></div>
+          </div>
+        </section>
+
+        <!-- 3 · SOLUTION -->
+        <section class="slide"
+          data-line='SOLUTION: |FORECAST MEDICINE LIKE WEATHER.| PREDICT. EXPLAIN. ACT EARLY.'
+          data-sub="Ingest → forecast → predict → explain → alert · every night, whole country">
+          <div class="eyebrow">02 · Our solution</div>
+          <div class="stage">
+            <div class="pipe">
+              <div class="node"><div class="bulb p1">⛁</div><div class="lbl">Ingest</div></div>
+              <div class="wire"><div class="spark"></div></div>
+              <div class="node"><div class="bulb p2">〰</div><div class="lbl">Forecast</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:1.1s;"></div></div>
+              <div class="node"><div class="bulb p3">◉</div><div class="lbl">Predict</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:2.2s;"></div></div>
+              <div class="node"><div class="bulb p4">❝</div><div class="lbl">Explain</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:3.3s;"></div></div>
+              <div class="node"><div class="bulb p5">⚑</div><div class="lbl">Alert</div></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">The loop</span><h3>One nightly national run</h3><p>Ingest stock &amp; sales → forecast demand <b>7–90 days</b> per medication × governorate → score stockout risk on a 5-color scale → alert the right desk.</p></div>
+            <div class="icard"><span class="k">Trust</span><h3>Every alert explains itself</h3><p>Top-5 reasons in <b>French and Arabic</b>, generated at scoring time. No black boxes anywhere near a health decision.</p></div>
+            <div class="icard"><span class="k">Control</span><h3>Humans decide, always</h3><p>The platform advises; pharmacists and PCT officers validate. Every recommendation carries cost in TND and expected risk reduction.</p></div>
+            <div class="icard"><span class="k">Value prop</span><h3>Turn lead time into a buffer</h3><p>A 4–12 week import delay is fatal when you react late — and <b>comfortable</b> when you order before the storm. That's the whole product.</p></div>
+          </div>
+        </section>
+
+        <!-- 4 · INNOVATION -->
+        <section class="slide"
+          data-line='INNOVATION: THE MODEL REFUSES TO |LEARN THE WRONG LESSON.|'
+          data-sub="Censoring correction · quantile forecasts · SHAP in two languages · auditable rules">
+          <div class="eyebrow">03 · Innovation</div>
+          <div class="stage">
+            <div class="chat">
+              <div class="bub fr" data-type="La demande a augmenté de 21 % sur 30 jours."><span class="who">Pourquoi ?</span><span class="txt"></span></div>
+              <div class="bub ar" data-type="ارتفاع الطلب بنسبة ٢١٪ خلال ٣٠ يومًا"><span class="who">لماذا؟</span><span class="txt"></span></div>
+              <div class="shapbar"><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Unique twist</span><h3>Demand censoring correction</h3><p>Stockout days record fake-low sales. We impute them from a 14-day trailing average — so shortages <b>don't teach the model that demand fell</b>. Skip this and the AI under-orders exactly the medicines that matter.</p></div>
+            <div class="icard"><span class="k">Method</span><h3>Global quantile models</h3><p>One LightGBM per horizon — not per product — predicting <b>P10 / P50 / P90</b>: a forecast plus its own confidence interval, robust even for rare medicines.</p></div>
+            <div class="icard"><span class="k">Architecture</span><h3>Explain at write time</h3><p>SHAP runs during nightly scoring, never in the request path. Explanations are pre-written, stored, and <b>free</b> at read time.</p></div>
+            <div class="icard"><span class="k">Deliberate</span><h3>Rules, not an LLM</h3><p>Recommendations are deterministic: deficit = forecast × 1.2 − stock − in-transit. A regulator can <b>recompute every number</b>. Plus a hard override: essential + &lt;5 days cover → critical.</p></div>
+          </div>
+        </section>
+
+        <!-- 5 · QUANTIFIED IMPACT -->
+        <section class="slide"
+          data-line='MEASURED: |6.3% FORECAST ERROR| AT ONE WEEK. STOCKOUTS FLAGGED BEFORE THEY EXIST.'
+          data-sub="Backtested on 825k rows · rolling-origin, 3 folds · synthetic national twin">
+          <div class="eyebrow">04 · Quantified impact</div>
+          <div class="stage">
+            <div class="chartbox">
+              <canvas id="fchart"></canvas>
+              <div class="chartbadge" style="right:4%; top:12%;">WAPE 0.063 · 7 days</div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">Accuracy</span><h3>6.3% → 11.2% error</h3><p>WAPE from 1 week to a full quarter ahead (LightGBM champion, 825k supervised rows). Real-data pilot bar: <b>≤ 35%</b>.</p></div>
+            <div class="icard"><span class="k">Early warning</span><h3>≥ 70% caught 7+ days early</h3><p>Enough time to redistribute between governorates or trigger emergency procurement <b>before shelves empty</b>.</p></div>
+            <div class="icard"><span class="k">Time saved</span><h3>~5 h/week → seconds</h3><p>A pharmacist phoning around for alternatives gets <b>ATC-validated substitutes instantly</b> — est. 4–5 hours saved weekly per pharmacy.</p></div>
+            <div class="icard"><span class="k">Risk cut</span><h3>−35% to −75% per action</h3><p>Modeled shortage-risk reduction: redistribution −35%, increased imports −60%, emergency procurement −75% — each costed in TND.</p></div>
+          </div>
+        </section>
+
+        <!-- 6 · FEASIBILITY -->
+        <section class="slide"
+          data-line='FEASIBILITY CHECK: BUILT IN |48 HOURS| — ON LAPTOPS AND OPEN SOURCE.'
+          data-sub="Team of 3–4 · zero cloud cost · Python + LightGBM + FastAPI + Next.js">
+          <div class="eyebrow">05 · Feasibility</div>
+          <div class="stage">
+            <div class="pipe">
+              <div class="node"><div class="bulb p1">⛁</div><div class="lbl">H0–12</div></div>
+              <div class="wire"><div class="spark"></div></div>
+              <div class="node"><div class="bulb p2">⚙</div><div class="lbl">H12–24</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:1.4s;"></div></div>
+              <div class="node"><div class="bulb p3">▣</div><div class="lbl">H24–40</div></div>
+              <div class="wire"><div class="spark" style="animation-delay:2.8s;"></div></div>
+              <div class="node"><div class="bulb p4">★</div><div class="lbl">H40–48</div></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c4">
+            <div class="icard"><span class="k">H0–12 · Data</span><h3>Synthetic Tunisia</h3><p>Our generator seeds <b>24 governorates, 68 medications, ~230 pharmacies, 2 years</b> of daily history — no data-access blockers on day one.</p></div>
+            <div class="icard"><span class="k">H12–24 · Models</span><h3>Train &amp; backtest</h3><p>LightGBM demand forecasts + shortage classifier, rolling-origin validation, SHAP explanations. All CPU-friendly — <b>no GPU needed</b>.</p></div>
+            <div class="icard"><span class="k">H24–40 · Product</span><h3>API + three portals</h3><p>FastAPI backend, Next.js dashboard with national map, forecast charts and bilingual explanation panels, wired end-to-end.</p></div>
+            <div class="icard"><span class="k">H40–48 · Ship</span><h3>Polish &amp; demo</h3><p>Docker Compose one-command launch, demo script, FR/AR copy pass. Everything open source: <b>total infra cost ≈ 0 TND</b>.</p></div>
+          </div>
+        </section>
+
+        <!-- 7 · ORIGINALITY -->
+        <section class="slide"
+          data-line='ORIGINALITY: EVERYONE BUILDS DASHBOARDS. WE BUILT |A WEATHER SERVICE.|'
+          data-sub="A metaphor is an adoption strategy">
+          <div class="eyebrow">06 · Originality</div>
+          <div class="stage">
+            <div class="sky">
+              <div class="cloud"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div>
+              <div class="bolt"></div>
+              <div class="drop pill" style="left:24%; animation-delay:0s;"></div>
+              <div class="drop pill" style="left:40%; animation-delay:.9s;"></div>
+              <div class="drop pill" style="left:56%; animation-delay:.4s;"></div>
+              <div class="drop pill" style="left:70%; animation-delay:1.4s;"></div>
+              <div class="drop pill" style="left:33%; animation-delay:1.9s;"></div>
+              <div class="puddle"></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">The metaphor</span><h3>"La météo des médicaments"</h3><p>Risk as weather: colors and forecasts <b>everyone already reads</b>. Adoption in health tech is a language problem — we solved the language first.</p></div>
+            <div class="icard"><span class="k">First-class Arabic</span><h3>AI that explains itself in Arabic</h3><p>Explanations <b>generated</b> in Arabic with full RTL — not translated as an afterthought. Vanishingly rare in health AI, decisive for trust in Tunisia.</p></div>
+            <div class="icard"><span class="k">Clever workaround</span><h3>A synthetic country twin</h3><p>No national data access yet? We simulate all of Tunisia — realistic enough to train on, <b>safe enough to demo anywhere</b>, swappable for real feeds via the same schema.</p></div>
+          </div>
+        </section>
+
+        <!-- 8 · AUDIENCE & USE CASES -->
+        <section class="slide"
+          data-line='USERS IDENTIFIED: SIX AUDIENCES. |THREE PORTALS.| ONE SHARED TRUTH.'
+          data-sub="Command center · pharmacy portal · public citizen app">
+          <div class="eyebrow">07 · Target audience &amp; use cases</div>
+          <div class="stage">
+            <div class="devices">
+              <div class="dev">
+                <div class="frame monitor"><div class="ui">
+                  <div class="bar b1"></div>
+                  <div class="map">
+                    <i style="left:20%; top:30%; background:var(--ok);"></i>
+                    <i style="left:45%; top:20%; background:var(--warn); animation-delay:.4s;"></i>
+                    <i style="left:60%; top:55%; background:var(--crit); animation-delay:.8s;"></i>
+                    <i style="left:30%; top:65%; background:var(--ok); animation-delay:1.2s;"></i>
+                    <i style="left:75%; top:35%; background:var(--hot); animation-delay:1.6s;"></i>
+                  </div>
+                </div></div>
+                <div class="cap">Command center</div>
+              </div>
+              <div class="dev">
+                <div class="frame tablet"><div class="ui">
+                  <div class="bar b2"></div>
+                  <div class="chartline"><i></i><i style="animation-delay:.2s;"></i><i style="animation-delay:.4s;"></i><i style="animation-delay:.6s;"></i><i style="animation-delay:.8s;"></i><i style="animation-delay:1s;"></i></div>
+                  <div class="bar b3"></div>
+                </div></div>
+                <div class="cap">Pharmacy</div>
+              </div>
+              <div class="dev">
+                <div class="frame phone"><div class="ui">
+                  <div class="bar b3"></div>
+                  <div class="map"><div class="pin"></div></div>
+                  <div class="bar b1"></div>
+                </div></div>
+                <div class="cap">Citizen</div>
+              </div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">Daily · operate</span><h3>PCT &amp; pharmacists</h3><p>PCT procurement validates costed recommendations each morning; pharmacists check order suggestions and <b>substitutions at the counter</b>, all day.</p></div>
+            <div class="icard"><span class="k">Weekly · steer</span><h3>Ministry &amp; regions</h3><p>Governorate risk map for redistribution decisions; national trends as <b>evidence for policy</b>. Regional authorities see only their territory (RBAC).</p></div>
+            <div class="icard"><span class="k">On demand · public</span><h3>Citizens &amp; suppliers</h3><p>Patients search availability &amp; alternatives — anonymous, bilingual, mobile-first. Importers get forward demand signals to <b>plan capacity</b>.</p></div>
+          </div>
+        </section>
+
+        <!-- 9 · COMPETITIVE DIFFERENTIATION -->
+        <section class="slide"
+          data-line='SCANNING ALTERNATIVES… FOUND 3. |NONE OF THEM FORECAST.|'
+          data-sub="Predictive + explainable + bilingual = the empty quadrant">
+          <div class="eyebrow">08 · Competitive differentiation</div>
+          <div class="stage">
+            <div class="cmp">
+              <div></div>
+              <div class="h">Excel + ERP</div><div class="h">Generic BI</div><div class="h">Med-finder apps</div><div class="h us">SentinelleRx</div>
+              <div class="cap">Forecasts 7–90 days</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell no">✕</div><div class="cell yes">✓</div>
+              <div class="cap">Explains every alert</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell no">✕</div><div class="cell yes">✓</div>
+              <div class="cap">French + Arabic RTL</div>
+              <div class="cell no">✕</div><div class="cell no">✕</div><div class="cell">~</div><div class="cell yes">✓</div>
+              <div class="cap">National + counter + citizen</div>
+              <div class="cell no">✕</div><div class="cell">~</div><div class="cell">~</div><div class="cell yes">✓</div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="info c3">
+            <div class="icard"><span class="k">Status quo</span><h3>Excel + ERP reports at PCT</h3><p>Descriptive and <b>weeks late</b> — they tell you what already ran out. We are predictive 7–90 days ahead, and we say why.</p></div>
+            <div class="icard"><span class="k">Adjacent</span><h3>Generic BI dashboards</h3><p>Power BI / Tableau show the past beautifully. No demand model, no severity scale, no Arabic explanations. <b>We're the layer above</b> — and can feed them.</p></div>
+            <div class="icard"><span class="k">Consumer</span><h3>Med-finder apps</h3><p>European-style locator apps solve "where is it now?" for one patient. We solve "<b>what runs out next?</b>" for a country — and stay complementary at the counter.</p></div>
+          </div>
+        </section>
+
+        <!-- 10 · THE ASK -->
+        <section class="slide"
+          data-line='REQUEST: |ONE GOVERNORATE. ONE FLU SEASON.| WE CATCH THE STORM FIRST.'
+          data-sub="Grand Tunis pilot · 10–20 pharmacies + PCT · then Sfax &amp; Sousse, then all 24">
+          <div class="eyebrow">09 · The ask</div>
+          <div class="stage">
+            <div class="tn">
+              <svg viewBox="0 0 300 380" aria-hidden="true">
+                <path d="M150 12 L196 26 L208 62 L184 96 L196 128 L176 164 L188 210 L170 258 L178 300 L156 352 L138 368 L124 330 L132 282 L116 236 L128 190 L112 148 L124 104 L108 66 L126 30 Z"
+                      fill="var(--glass)" stroke="var(--signal)" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              <div class="pinbig"></div>
+              <div class="pulse"></div>
+            </div>
+          </div>
+          <div class="speech"></div>
+          <div class="sub"></div>
+          <div class="targets">
+            <div class="chip"><b>≥70%</b> stockouts caught 7+ days early</div>
+            <div class="chip"><b>≤0.35</b> WAPE on real pilot data</div>
+            <div class="chip"><b>20</b> recommendations validated by PCT</div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <span class="count"><b id="cur">01</b> / <span id="tot">10</span></span>
+    <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+    <button class="play on" id="playBtn" type="button">⏸ Auto</button>
+    <button class="theme" id="themeBtn" type="button">Theme</button>
+    <div class="nav">
+      <button type="button" id="prev" aria-label="Previous slide">←</button>
+      <button type="button" id="next" aria-label="Next slide">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var scene = document.getElementById('scene');
+  var rig = document.getElementById('rig');
+  var dots = document.getElementById('dots');
+  var cur = document.getElementById('cur');
+  var playBtn = document.getElementById('playBtn');
+  var i = 0;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var playing = !reduce;
+  var streamToken = 0;
+  var advanceTimer = null;
+
+  document.getElementById('tot').textContent = String(slides.length).padStart(2,'0');
+
+  slides.forEach(function(s, n){
+    var b = document.createElement('button');
+    b.className = 'dot'; b.type = 'button';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Slide ' + (n+1));
+    b.addEventListener('click', function(){ userGo(n); });
+    dots.appendChild(b);
+  });
+  var dotEls = Array.prototype.slice.call(dots.children);
+
+  /* ============ streamable box text ============ */
+  /* wrap every word in the info cards / chips in a span */
+  function wrapWords(el){
+    Array.prototype.slice.call(el.childNodes).forEach(function(nd){
+      if (nd.nodeType === 3){
+        var frag = document.createDocumentFragment();
+        nd.textContent.split(/(\s+)/).forEach(function(tk){
+          if (!tk) return;
+          if (/^\s+$/.test(tk)){ frag.appendChild(document.createTextNode(tk)); }
+          else {
+            var sp = document.createElement('span');
+            sp.className = 'sw'; sp.textContent = tk;
+            frag.appendChild(sp);
+          }
+        });
+        el.replaceChild(frag, nd);
+      } else if (nd.nodeType === 1){ wrapWords(nd); }
+    });
+  }
+  slides.forEach(function(s){
+    Array.prototype.forEach.call(s.querySelectorAll('.icard h3, .icard p, .chip'), wrapWords);
+  });
+
+  function streamBoxes(slide, token){
+    var groups = slide.querySelectorAll('.icard, .chip');
+    Array.prototype.forEach.call(groups, function(g){
+      Array.prototype.forEach.call(g.querySelectorAll('.sw'), function(sp){ sp.classList.remove('on'); });
+    });
+    if (reduce){
+      Array.prototype.forEach.call(slide.querySelectorAll('.sw'), function(sp){ sp.classList.add('on'); });
+      return;
+    }
+    /* each box streams its own words; boxes start staggered */
+    Array.prototype.forEach.call(groups, function(g, gi){
+      var spans = g.querySelectorAll('.sw');
+      var idx = 0;
+      function tickw(){
+        if (token !== streamToken || idx >= spans.length) return;
+        spans[idx++].classList.add('on');
+        setTimeout(tickw, 26);
+      }
+      setTimeout(tickw, 1100 + gi * 420);
+    });
+  }
+
+  /* ============ robot voice streaming ============ */
+  /* Char-by-char teletype with a glitch scramble before each
+     character settles. |...| marks accent (glowing) spans. */
+  var GLYPHS = '▓▒░#%&@01<>/\\+=~';
+
+  function streamLine(slide, token, done){
+    var box = slide.querySelector('.speech');
+    var sub = slide.querySelector('.sub');
+    var raw = slide.dataset.line || '';
+    box.innerHTML = '';
+    if (sub){ sub.classList.remove('on'); sub.textContent = slide.dataset.sub || ''; }
+
+    /* build char list with accent flags */
+    var parts = raw.split('|');
+    var chars = [];
+    parts.forEach(function(part, pi){
+      var accent = pi % 2 === 1;
+      Array.from(part).forEach(function(ch){ chars.push({ c: ch, a: accent }); });
+    });
+
+    var caret = document.createElement('span');
+    caret.className = 'caret';
+    box.appendChild(caret);
+
+    if (reduce){
+      chars.forEach(function(ch){
+        var sp = document.createElement('span');
+        sp.className = 'w' + (ch.a ? ' hl' : '');
+        sp.textContent = ch.c;
+        box.insertBefore(sp, caret);
+      });
+      caret.classList.add('done');
+      if (sub) sub.classList.add('on');
+      if (done) done();
+      return;
+    }
+
+    var n = 0;
+    function next(){
+      if (token !== streamToken) return;
+      if (n >= chars.length){
+        caret.classList.add('done');
+        if (sub) sub.classList.add('on');
+        if (done) done();
+        return;
+      }
+      var ch = chars[n++];
+      var sp = document.createElement('span');
+      box.insertBefore(sp, caret);
+
+      if (ch.c === ' '){
+        sp.className = 'w';
+        sp.innerHTML = '&nbsp;';
+        setTimeout(next, 24);
+        return;
+      }
+
+      /* glitch: flash 2 random glyphs, then settle */
+      sp.className = 'w glitch';
+      sp.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      setTimeout(function(){
+        if (token !== streamToken) return;
+        sp.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }, 16);
+      setTimeout(function(){
+        if (token !== streamToken) return;
+        sp.className = 'w' + (ch.a ? ' hl' : '');
+        sp.textContent = ch.c;
+      }, 34);
+
+      /* robotic cadence: metronomic, hard stops at punctuation */
+      var d = 30;
+      if (/[.!?…]/.test(ch.c)) d = 460;
+      else if (/[,;:—]/.test(ch.c)) d = 240;
+      setTimeout(next, d);
+    }
+    setTimeout(next, 500);
+  }
+
+  /* typewriter for chat bubbles (innovation slide) */
+  function typeBubbles(slide, token){
+    var bubs = slide.querySelectorAll('.bub');
+    var delay = 900;
+    Array.prototype.forEach.call(bubs, function(b){
+      var t = b.dataset.type || '';
+      var out = b.querySelector('.txt');
+      out.textContent = '';
+      var chars = Array.from(t);
+      chars.forEach(function(ch, ci){
+        setTimeout(function(){
+          if (token !== streamToken) return;
+          out.textContent += ch;
+        }, delay + ci * 30);
+      });
+      delay += chars.length * 30 + 500;
+    });
+  }
+
+  /* forecast chart draw-in */
+  function drawChart(token){
+    var cv = document.getElementById('fchart');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var css = getComputedStyle(document.documentElement);
+    var sig = css.getPropertyValue('--signal').trim() || '#35C77F';
+    var line = css.getPropertyValue('--line').trim() || '#1F3A2B';
+    var fog = css.getPropertyValue('--fog').trim() || '#85A392';
+
+    var N = 60, split = 38;
+    function base(x){ return H*0.62 - Math.sin(x*0.55)*18 - Math.sin(x*0.13)*28 - x*0.8; }
+    var pts = [];
+    for (var k = 0; k <= N; k++){
+      var x = (k / N) * (W - 40) + 20;
+      pts.push({ x: x, y: base(k) + Math.sin(k * 7.7) * 5 });
+    }
+
+    var start = null, dur = reduce ? 1 : 1500;
+    function frame(ts){
+      if (token !== streamToken) return;
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var e = 1 - Math.pow(1 - p, 3);
+      var upto = Math.floor(e * N);
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = line; ctx.lineWidth = 1;
+      for (var g = 1; g < 5; g++){
+        ctx.beginPath(); ctx.moveTo(20, H*g/5); ctx.lineTo(W-20, H*g/5); ctx.stroke();
+      }
+      var sx = pts[split].x;
+      ctx.setLineDash([4,5]); ctx.strokeStyle = fog;
+      ctx.beginPath(); ctx.moveTo(sx, 8); ctx.lineTo(sx, H-8); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = fog; ctx.font = '11px Consolas, monospace';
+      ctx.fillText('TODAY', sx + 8, 18);
+
+      if (upto > split){
+        ctx.beginPath();
+        for (var a = split; a <= upto; a++){
+          var spread = (a - split) * 1.4 + 5;
+          if (a === split) ctx.moveTo(pts[a].x, pts[a].y - spread);
+          else ctx.lineTo(pts[a].x, pts[a].y - spread);
+        }
+        for (var b2 = upto; b2 >= split; b2--){
+          var spread2 = (b2 - split) * 1.4 + 5;
+          ctx.lineTo(pts[b2].x, pts[b2].y + spread2);
+        }
+        ctx.closePath();
+        ctx.fillStyle = sig + '22';
+        ctx.fill();
+      }
+
+      ctx.lineWidth = 2.5; ctx.strokeStyle = sig; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      for (var c = 0; c <= Math.min(upto, split); c++){
+        if (c === 0) ctx.moveTo(pts[c].x, pts[c].y); else ctx.lineTo(pts[c].x, pts[c].y);
+      }
+      ctx.stroke();
+      if (upto > split){
+        ctx.setLineDash([7,6]);
+        ctx.beginPath();
+        for (var d2 = split; d2 <= upto; d2++){
+          if (d2 === split) ctx.moveTo(pts[d2].x, pts[d2].y); else ctx.lineTo(pts[d2].x, pts[d2].y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      var ep = pts[Math.min(upto, N)];
+      ctx.beginPath(); ctx.arc(ep.x, ep.y, 5, 0, Math.PI*2);
+      ctx.fillStyle = sig; ctx.fill();
+
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ============ slide lifecycle ============ */
+  function enter(slide){
+    streamToken++;
+    var token = streamToken;
+    if (advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; }
+
+    if (slide.querySelector('#fchart')) drawChart(token);
+    if (slide.querySelector('.bub')) typeBubbles(slide, token);
+    streamBoxes(slide, token);
+
+    streamLine(slide, token, function(){
+      if (playing && token === streamToken){
+        /* dwell long enough to read the cards */
+        var dwell = slide.querySelector('.icard') ? 9000 : 3200;
+        advanceTimer = setTimeout(function(){
+          if (token !== streamToken) return;
+          if (i < slides.length - 1) go(i + 1);
+          else setPlaying(false);
+        }, dwell);
+      }
+    });
+  }
+
+  function render(morph){
+    slides.forEach(function(s, n){
+      var d = n - i;
+      var a = Math.abs(d);
+      if (d === 0){
+        s.style.transform = 'translate3d(0,0,0) rotateY(0deg)';
+        if (s.dataset.state !== 'live'){
+          s.dataset.state = 'live';
+          enter(s);
+        }
+      } else {
+        s.style.transform = 'translate3d(' + (d * 62) + '%,0,' + (-320 - a * 260) + 'px) rotateY(' + (d * -34) + 'deg) scale(' + Math.max(.86, 1 - a * .05) + ')';
+        s.dataset.state = a === 1 ? 'near' : 'far';
+      }
+      s.setAttribute('aria-hidden', d === 0 ? 'false' : 'true');
+    });
+    dotEls.forEach(function(b, n){ b.setAttribute('aria-current', n === i ? 'true' : 'false'); });
+    cur.textContent = String(i+1).padStart(2,'0');
+    if (morph && !reduce){
+      scene.classList.remove('warp');
+      void scene.offsetWidth;
+      scene.classList.add('warp');
+    }
+  }
+
+  function go(n){
+    var next = Math.max(0, Math.min(slides.length - 1, n));
+    if (next === i) return;
+    i = next;
+    render(true);
+  }
+  function userGo(n){ setPlaying(false); go(n); }
+
+  function setPlaying(v){
+    playing = v;
+    playBtn.classList.toggle('on', v);
+    playBtn.textContent = v ? '⏸ Auto' : '▶ Auto';
+    if (!v && advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; }
+    if (v){ enter(slides[i]); }
+  }
+
+  document.getElementById('next').addEventListener('click', function(){ userGo(i+1); });
+  document.getElementById('prev').addEventListener('click', function(){ userGo(i-1); });
+  playBtn.addEventListener('click', function(){ setPlaying(!playing); });
+
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); userGo(i+1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); userGo(i-1); }
+    else if (e.key === ' '){ e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === 'Home'){ userGo(0); }
+    else if (e.key === 'End'){ userGo(slides.length - 1); }
+  });
+
+  function fit(){
+    var k = Math.min((window.innerWidth - 80) / 1280, (window.innerHeight - 120) / 720);
+    rig.style.transform = 'scale(' + Math.min(k, 1.15) + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  if (!reduce){
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+    window.addEventListener('pointermove', function(e){
+      tx = (e.clientY / window.innerHeight - .5) * 4.5;
+      ty = (e.clientX / window.innerWidth - .5) * -7;
+      if (!raf) raf = requestAnimationFrame(tick);
+    });
+    function tick(){
+      cx += (tx - cx) * .07; cy += (ty - cy) * .07;
+      scene.style.transform = 'rotateX(' + cx.toFixed(3) + 'deg) rotateY(' + cy.toFixed(3) + 'deg)';
+      if (Math.abs(tx-cx) > .01 || Math.abs(ty-cy) > .01){ raf = requestAnimationFrame(tick); }
+      else { raf = null; }
+    }
+  }
+
+  var root = document.documentElement;
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var isDark = root.getAttribute('data-theme')
+      ? root.getAttribute('data-theme') === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    paint();
+  });
+
+  /* ambient isobar field */
+  var cv = document.getElementById('weather');
+  var ctx2 = cv.getContext('2d');
+  var W = 0, H = 0, dpr = 1, stroke = 'rgba(53,199,127,.13)';
+  function paint(){
+    var probe = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim();
+    if (probe.charAt(0) === '#' && probe.length >= 7){
+      var r = parseInt(probe.substr(1,2),16), g = parseInt(probe.substr(3,2),16), b = parseInt(probe.substr(5,2),16);
+      stroke = 'rgba(' + r + ',' + g + ',' + b + ',.13)';
+    }
+  }
+  function size(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function draw(ts){
+    var t = ts * 0.00006;
+    ctx2.clearRect(0, 0, W, H);
+    ctx2.lineWidth = 1; ctx2.strokeStyle = stroke;
+    for (var b = 0; b < 26; b++){
+      var base = (b / 26) * H * 1.35 - H * 0.18;
+      ctx2.beginPath();
+      for (var x = 0; x <= W; x += 12){
+        var u = x / W;
+        var y = base + Math.sin(u*3.1 + t + b*0.42)*34 + Math.sin(u*6.7 - t*1.6 + b*0.19)*15 + Math.sin(u*1.3 + t*0.6)*26;
+        if (x === 0) ctx2.moveTo(x, y); else ctx2.lineTo(x, y);
+      }
+      ctx2.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  if (!reduce){
+    window.addEventListener('resize', size);
+    size(); paint(); requestAnimationFrame(draw);
+  }
+
+  slides[0].dataset.state = '';
+  render(false);
+})();
+</script>
+</html>

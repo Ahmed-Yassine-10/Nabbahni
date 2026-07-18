@@ -1,0 +1,91 @@
+{
+  "app": {
+    "name": "SentinelleRx",
+    "tagline": "La météo des médicaments de Tunisie"
+  },
+  "nav": {
+    "commandCenter": "Command Center",
+    "dashboard": "Tableau de bord",
+    "shortages": "Ruptures",
+    "recommendations": "Recommandations",
+    "supplyChain": "Chaîne d'approvisionnement",
+    "alerts": "Alertes",
+    "pharmacy": "Portail Pharmacie",
+    "stock": "Stock",
+    "orders": "Commandes recommandées",
+    "substitutions": "Substitutions",
+    "analytics": "Analytique",
+    "citizen": "Espace Citoyen",
+    "search": "Rechercher",
+    "notifications": "Notifications",
+    "login": "Connexion",
+    "logout": "Déconnexion"
+  },
+  "severity": {
+    "green": "Normal",
+    "yellow": "Vigilance",
+    "orange": "Tension",
+    "red": "Élevé",
+    "critical": "Critique"
+  },
+  "availability": {
+    "available": "Disponible",
+    "tension": "Tension d'approvisionnement",
+    "shortage": "Rupture"
+  },
+  "commandCenter": {
+    "title": "Command Center National",
+    "subtitle": "Vue nationale des risques de rupture",
+    "medsAtRisk": "Médicaments à risque",
+    "criticalCount": "Alertes critiques",
+    "nationalCoverage": "Couverture nationale moyenne",
+    "openRecommendations": "Recommandations en attente",
+    "riskMap": "Carte des risques par gouvernorat",
+    "riskBoard": "Tableau des risques",
+    "days": "jours"
+  },
+  "medication": {
+    "forecast": "Prévision de la demande",
+    "explanation": "Pourquoi ce risque ?",
+    "confidenceInterval": "Intervalle de confiance",
+    "trend": "Tendance",
+    "probability": "Probabilité de rupture",
+    "estimatedDate": "Date estimée de rupture",
+    "coverage": "Couverture (jours)"
+  },
+  "recommendations": {
+    "title": "Recommandations",
+    "confidence": "Confiance",
+    "financialImpact": "Impact financier (TND)",
+    "expectedReduction": "Réduction attendue de la rupture",
+    "validate": "Valider",
+    "reject": "Rejeter",
+    "proposed": "Proposée",
+    "validated": "Validée",
+    "rejected": "Rejetée"
+  },
+  "pharmacy": {
+    "myStock": "Mon stock",
+    "localAlerts": "Alertes locales",
+    "recommendedOrders": "Commandes recommandées",
+    "suggestedAlternatives": "Alternatives suggérées",
+    "validatedByPharmacist": "Le pharmacien valide toujours la décision finale"
+  },
+  "citizen": {
+    "searchPlaceholder": "Rechercher un médicament (ex. Amoxicilline)…",
+    "nearbyPharmacies": "Pharmacies à proximité",
+    "alternatives": "Alternatives possibles",
+    "confirmWithPharmacist": "À confirmer par votre pharmacien",
+    "nationalStatus": "Statut national",
+    "findNearby": "Trouver les pharmacies proches",
+    "km": "km"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "noData": "Aucune donnée disponible",
+    "viewDetails": "Voir le détail",
+    "back": "Retour",
+    "all": "Tous"
+  }
+}

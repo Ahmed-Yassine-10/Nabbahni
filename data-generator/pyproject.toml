@@ -1,0 +1,18 @@
+[project]
+name = "sentinellerx-data-generator"
+version = "0.1.0"
+description = "Synthetic Tunisian pharmaceutical dataset generator for SentinelleRx"
+requires-python = ">=3.12"
+# Imports the backend package (app.*) via sys.path; run it inside an environment
+# where the backend and its dependencies are installed, or install these:
+dependencies = [
+    "sqlalchemy>=2.0.36",
+    "geoalchemy2>=0.15",
+    "psycopg[binary]>=3.2",
+    "pydantic-settings>=2.6",
+    "shapely>=2.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

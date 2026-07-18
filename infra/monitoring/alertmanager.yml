@@ -1,0 +1,24 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: default
+  group_by: ["alertname", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: critical
+
+receivers:
+  - name: default
+    # Placeholder — wire to email/Slack/PagerDuty in production.
+  - name: critical
+    # Placeholder for critical escalation channel.
+
+inhibit_rules:
+  - source_matchers: [severity = "critical"]
+    target_matchers: [severity = "warning"]
+    equal: ["alertname"]

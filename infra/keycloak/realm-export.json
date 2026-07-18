@@ -1,0 +1,167 @@
+{
+  "realm": "sentinellerx",
+  "enabled": true,
+  "displayName": "SentinelleRx",
+  "displayNameHtml": "<b>SentinelleRx</b> — La météo des médicaments",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "failureFactor": 5,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and notUsername(undefined)",
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "roles": {
+    "realm": [
+      { "name": "pct_admin", "description": "Administrateur de la Pharmacie Centrale de Tunisie" },
+      { "name": "regional_authority", "description": "Autorité sanitaire régionale (gouvernorat)" },
+      { "name": "hospital_pharmacist", "description": "Pharmacien hospitalier" },
+      { "name": "community_pharmacist", "description": "Pharmacien d'officine" },
+      { "name": "supplier", "description": "Fournisseur / importateur de médicaments" },
+      { "name": "citizen", "description": "Citoyen / patient" }
+    ]
+  },
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "sentinellerx-web",
+      "name": "SentinelleRx Web (Next.js)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "sentinellerx-web-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/api/auth/callback/keycloak"
+      ],
+      "webOrigins": ["http://localhost:3000", "+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "sentinellerx-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "sentinellerx-api",
+      "name": "SentinelleRx API (FastAPI)",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@pct.tn",
+      "email": "admin@pct.tn",
+      "firstName": "Admin",
+      "lastName": "PCT",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["pct_admin"],
+      "attributes": { "org": ["PCT"] }
+    },
+    {
+      "username": "region.tunis@sante.tn",
+      "email": "region.tunis@sante.tn",
+      "firstName": "Autorité",
+      "lastName": "Tunis",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["regional_authority"],
+      "attributes": { "governorate_code": ["11"] }
+    },
+    {
+      "username": "hopital.charlesnicolle@sante.tn",
+      "email": "hopital.charlesnicolle@sante.tn",
+      "firstName": "Pharmacien",
+      "lastName": "Charles Nicolle",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["hospital_pharmacist"],
+      "attributes": { "pharmacy_ref": ["HOP-CHARLES-NICOLLE"] }
+    },
+    {
+      "username": "pharmacie.elmanar@pharma.tn",
+      "email": "pharmacie.elmanar@pharma.tn",
+      "firstName": "Pharmacien",
+      "lastName": "El Manar",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["community_pharmacist"],
+      "attributes": { "pharmacy_ref": ["PH-ELMANAR-001"] }
+    },
+    {
+      "username": "supplier.medis@medis.tn",
+      "email": "supplier.medis@medis.tn",
+      "firstName": "Fournisseur",
+      "lastName": "MEDIS",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["supplier"],
+      "attributes": { "supplier_ref": ["SUP-MEDIS"] }
+    },
+    {
+      "username": "citoyen@demo.tn",
+      "email": "citoyen@demo.tn",
+      "firstName": "Citoyen",
+      "lastName": "Demo",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "Sentinelle2026!", "temporary": false }],
+      "realmRoles": ["citizen"]
+    }
+  ]
+}

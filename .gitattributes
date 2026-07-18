@@ -1,0 +1,20 @@
+# Normalise text files in the repository to LF.
+* text=auto eol=lf
+
+# Windows batch files MUST check out with CRLF. cmd.exe misparses LF-only
+# batch files in ways that look nothing like a line-ending problem (it read
+# `timeout` as a prompt and ran stray commands), so this is pinned rather
+# than left to the cloner's core.autocrlf setting.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Shell scripts must stay LF even on Windows checkouts.
+*.sh   text eol=lf
+
+# Binary assets — never touch.
+*.pptx binary
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.joblib binary

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-worker
+  labels: { app: alert-worker }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: alert-worker }
+  template:
+    metadata:
+      labels: { app: alert-worker }
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/sentinellerx/api:latest
+          command: ["python", "-m", "app.workers.alert_worker"]
+          envFrom:
+            - secretRef: { name: sentinellerx-secrets }
+            - configMapRef: { name: sentinellerx-config }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
