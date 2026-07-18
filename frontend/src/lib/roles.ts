@@ -36,18 +36,21 @@ export type NavKey =
   | "cc.overview"
   | "cc.shortages"
   | "cc.stock"
+  | "cc.expiry"
   | "cc.recommendations"
   | "cc.supplyChain"
   | "cc.models"
   | "cc.alerts"
   | "ph.stock"
   | "ph.orders"
+  | "ph.allocation"
   | "ph.substitutions";
 
 const NATIONAL_NAV: NavKey[] = [
   "cc.overview",
   "cc.shortages",
   "cc.stock",
+  "cc.expiry",
   "cc.recommendations",
   "cc.supplyChain",
   "cc.models",
@@ -71,7 +74,14 @@ export const PORTALS: Record<Role, PortalDefinition> = {
     accent: "#6d28d9",
     accentSoft: "#f5f3ff",
     // No model governance: regions consume predictions, they don't own them.
-    nav: ["cc.overview", "cc.shortages", "cc.stock", "cc.recommendations", "cc.alerts"],
+    nav: [
+      "cc.overview",
+      "cc.shortages",
+      "cc.stock",
+      "cc.expiry",
+      "cc.recommendations",
+      "cc.alerts",
+    ],
     density: "dense",
   },
   hospital_pharmacist: {
@@ -80,7 +90,7 @@ export const PORTALS: Record<Role, PortalDefinition> = {
     mission: "Stock hospitalier et substitutions",
     accent: "#0f766e",
     accentSoft: "#f0fdfa",
-    nav: ["ph.stock", "ph.orders", "ph.substitutions"],
+    nav: ["ph.stock", "ph.allocation", "ph.orders", "ph.substitutions"],
     density: "comfortable",
   },
   community_pharmacist: {
@@ -89,7 +99,7 @@ export const PORTALS: Record<Role, PortalDefinition> = {
     mission: "Stock, commandes et alternatives",
     accent: "#047857",
     accentSoft: "#ecfdf5",
-    nav: ["ph.stock", "ph.orders", "ph.substitutions"],
+    nav: ["ph.stock", "ph.allocation", "ph.orders", "ph.substitutions"],
     density: "comfortable",
   },
   supplier: {

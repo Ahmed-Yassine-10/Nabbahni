@@ -5,6 +5,9 @@ import { api } from "./api";
 import type {
   Alert,
   CitizenAvailability,
+  ExpiryAnalysis,
+  PharmacyExpiry,
+  Transfer,
   Forecast,
   Medication,
   MedicationBrief,
@@ -194,5 +197,35 @@ export function useMedicationSearch(q: string) {
     queryKey: ["med-search", q],
     queryFn: () => api<Page<Medication>>(`/api/v1/medications?q=${encodeURIComponent(q)}&page_size=10`),
     enabled: q.length >= 2,
+  });
+}
+
+// ── Expiry / waste ────────────────────────────────────────────────────────────
+
+export function useExpiryAnalysis() {
+  return useQuery({
+    queryKey: ["expiry-analysis"],
+    queryFn: () => api<ExpiryAnalysis>("/api/v1/expiry/analysis"),
+    retry: false,
+    // The national sweep walks every lot of every pharmacy; keep it cached.
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function usePharmacyExpiry(pharmacyId?: string | null) {
+  return useQuery({
+    queryKey: ["pharmacy-expiry", pharmacyId],
+    queryFn: () => api<PharmacyExpiry>(`/api/v1/expiry/pharmacy/${pharmacyId}`),
+    enabled: !!pharmacyId,
+    retry: false,
+  });
+}
+
+export function useRedistribution() {
+  return useQuery({
+    queryKey: ["redistribution"],
+    queryFn: () => api<Transfer[]>("/api/v1/expiry/redistribution?limit=60"),
+    retry: false,
+    staleTime: 5 * 60_000,
   });
 }

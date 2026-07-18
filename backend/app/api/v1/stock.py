@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import statistics
 import uuid
-from datetime import date, timedelta
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
@@ -15,8 +15,8 @@ from app.core.enums import Role
 from app.core.messaging import publish_ingest
 from app.core.security import Principal, get_current_principal, require_roles
 from app.models.ml import ShortagePrediction
-from app.models.reference import Medication, Pharmacy
-from app.models.transactional import NationalStock, SalesDaily, StockLevel
+from app.models.reference import Medication
+from app.models.transactional import NationalStock, StockLevel
 from app.schemas.entities import (
     NationalStockOut,
     StockAnalysisBucket,
@@ -24,14 +24,12 @@ from app.schemas.entities import (
     StockIngestRequest,
     StockOut,
 )
+from app.services.demand import pharmacy_daily_rates
 from app.services.labels import attach_labels
 
 router = APIRouter()
 
 _STAFF = (Role.pct_admin, Role.regional_authority)
-
-# Trailing window used to estimate consumption rates.
-_CONSUMPTION_WINDOW_DAYS = 30
 
 
 @router.get("/stock/pharmacy/{pharmacy_id}", response_model=list[StockOut])
@@ -66,72 +64,10 @@ def pharmacy_stock(
 
 
 def _attach_coverage(db: Session, pharmacy_id: uuid.UUID, items: list[StockOut]) -> None:
-    """Set `coverage_days` = stock / this pharmacy's daily consumption.
-
-    Sales are recorded at GOVERNORATE granularity (the ETL receives aggregated
-    regional figures, not per-counter scans), so a pharmacy's own consumption
-    is not directly observable. Dividing its stock by the whole governorate's
-    demand would understate cover by the number of pharmacies in the region —
-    every shelf would read "2 days".
-
-    Instead we apportion regional demand by the share of regional stock this
-    pharmacy holds: a pharmacy carrying 10% of the region's stock of a
-    medication is assumed to serve ~10% of the region's demand for it.
-    """
-    pharmacy = db.get(Pharmacy, pharmacy_id)
-    if pharmacy is None:
-        return
-
-    since = date.today() - timedelta(days=_CONSUMPTION_WINDOW_DAYS)
-
-    # Regional daily demand per medication.
-    peer_ids = [
-        p for (p,) in db.execute(
-            select(Pharmacy.id).where(Pharmacy.governorate_id == pharmacy.governorate_id)
-        ).all()
-    ]
-    gov_daily = {
-        med_id: (qty or 0) / _CONSUMPTION_WINDOW_DAYS
-        for med_id, qty in db.execute(
-            select(SalesDaily.medication_id, func.sum(SalesDaily.quantity))
-            .where(SalesDaily.pharmacy_id.in_(peer_ids), SalesDaily.date >= since)
-            .group_by(SalesDaily.medication_id)
-        ).all()
-    }
-
-    # Regional stock per medication, from each pharmacy's latest snapshot.
-    latest_peer = (
-        select(
-            StockLevel.pharmacy_id.label("ph"),
-            StockLevel.medication_id.label("med"),
-            func.max(StockLevel.recorded_at).label("max_date"),
-        )
-        .where(StockLevel.pharmacy_id.in_(peer_ids))
-        .group_by(StockLevel.pharmacy_id, StockLevel.medication_id)
-        .subquery()
-    )
-    gov_stock = {
-        med_id: total or 0
-        for med_id, total in db.execute(
-            select(StockLevel.medication_id, func.sum(StockLevel.quantity))
-            .join(
-                latest_peer,
-                (StockLevel.pharmacy_id == latest_peer.c.ph)
-                & (StockLevel.medication_id == latest_peer.c.med)
-                & (StockLevel.recorded_at == latest_peer.c.max_date),
-            )
-            .group_by(StockLevel.medication_id)
-        ).all()
-    }
-
+    """Set `coverage_days` = stock / this pharmacy's estimated daily consumption."""
+    rates = pharmacy_daily_rates(db, pharmacy_id)
     for item in items:
-        regional_rate = gov_daily.get(item.medication_id, 0.0)
-        regional_stock = gov_stock.get(item.medication_id, 0)
-        if regional_rate <= 0 or regional_stock <= 0:
-            item.coverage_days = None
-            continue
-        share = item.quantity / regional_stock
-        rate = regional_rate * share
+        rate = rates.get(item.medication_id, 0.0)
         item.coverage_days = round(item.quantity / rate, 1) if rate > 0 else None
 
 

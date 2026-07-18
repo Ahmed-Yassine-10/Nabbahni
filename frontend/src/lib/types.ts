@@ -210,3 +210,87 @@ export interface Alert {
   medication: MedicationBrief | null;
   governorate_name: string | null;
 }
+
+// ── Expiry / waste ────────────────────────────────────────────────────────────
+
+export interface ExpiryBand {
+  label: string;
+  min_days: number | null;
+  max_days: number | null;
+  severity: Severity;
+  units: number;
+  value_tnd: number;
+}
+
+export interface BatchRisk {
+  batch_id: string;
+  medication_id: string;
+  brand_name: string;
+  dci: string;
+  pharmacy_id: string | null;
+  pharmacy_name: string | null;
+  lot_number: string;
+  quantity: number;
+  expiry_date: string;
+  days_to_expiry: number;
+  daily_rate: number;
+  projected_consumption: number;
+  at_risk_quantity: number;
+  at_risk_value_tnd: number;
+  severity: Severity;
+}
+
+export interface ExpiryAnalysis {
+  total_units: number;
+  total_value_tnd: number;
+  at_risk_units: number;
+  at_risk_value_tnd: number;
+  expired_units: number;
+  expired_value_tnd: number;
+  waste_rate_pct: number;
+  bands: ExpiryBand[];
+  worst_batches: BatchRisk[];
+}
+
+/** How much of one medication a pharmacy should actually receive. */
+export interface Allocation {
+  medication_id: string;
+  brand_name: string;
+  dci: string;
+  is_essential: boolean;
+  daily_rate: number;
+  current_stock: number;
+  usable_stock: number;
+  target_stock: number;
+  recommended_quantity: number;
+  surplus_quantity: number;
+  cover_days_after: number | null;
+  at_risk_quantity: number;
+  at_risk_value_tnd: number;
+  order_value_tnd: number;
+  reason: string;
+}
+
+export interface PharmacyExpiry {
+  pharmacy_id: string;
+  pharmacy_name: string;
+  at_risk_units: number;
+  at_risk_value_tnd: number;
+  order_value_tnd: number;
+  batches: BatchRisk[];
+  allocations: Allocation[];
+}
+
+export interface Transfer {
+  medication_id: string;
+  brand_name: string;
+  from_pharmacy_id: string;
+  from_pharmacy_name: string;
+  to_pharmacy_id: string;
+  to_pharmacy_name: string;
+  quantity: number;
+  expiry_date: string;
+  days_to_expiry: number;
+  value_saved_tnd: number;
+  rationale: string;
+}

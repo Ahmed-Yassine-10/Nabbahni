@@ -54,6 +54,39 @@ class NationalStock(Base, UUIDMixin, TimestampMixin):
     )
 
 
+class StockBatch(Base, UUIDMixin, TimestampMixin):
+    """A physical lot of one medication, with its own expiry date.
+
+    `stock_levels` records how much a pharmacy holds; this records *which
+    lots* make it up. Expiry cannot be reasoned about without lot granularity:
+    two pharmacies holding 1000 boxes are in completely different situations if
+    one lot expires next month and the other in two years.
+
+    `pharmacy_id` is NULL for stock sitting in the PCT central warehouse.
+    """
+
+    __tablename__ = "stock_batches"
+
+    medication_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("medications.id"), nullable=False)
+    pharmacy_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("pharmacies.id"))
+    warehouse: Mapped[str | None] = mapped_column(String(120))
+    lot_number: Mapped[str] = mapped_column(String(40), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Quantity already written off as expired — kept so the waste rate is a
+    # measured outcome, not only a projection.
+    quantity_written_off: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    manufactured_at: Mapped[date | None] = mapped_column(Date)
+    expiry_date: Mapped[date] = mapped_column(Date, nullable=False)
+    received_at: Mapped[date] = mapped_column(Date, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("medication_id", "pharmacy_id", "lot_number",
+                         name="uq_batch_med_pharmacy_lot"),
+        Index("ix_batch_med_expiry", "medication_id", "expiry_date"),
+        Index("ix_batch_pharmacy_expiry", "pharmacy_id", "expiry_date"),
+    )
+
+
 class SalesDaily(Base, UUIDMixin):
     __tablename__ = "sales_daily"
 

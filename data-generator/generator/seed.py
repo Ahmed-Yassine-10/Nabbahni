@@ -38,6 +38,7 @@ from app.models import (  # noqa: E402
     SalesDaily,
     Shipment,
     ShortageHistory,
+    StockBatch,
     StockLevel,
     Substitution,
     Supplier,
@@ -70,7 +71,7 @@ def reset(session) -> None:
     """Delete existing data (child-first) for idempotent re-seeding."""
     for model in (
         Substitution, Shipment, ImportOrder, DistributionRecord, ShortageHistory,
-        ExternalSignal, SalesDaily, StockLevel, NationalStock, User, Pharmacy,
+        ExternalSignal, SalesDaily, StockLevel, StockBatch, NationalStock, User, Pharmacy,
         Supplier, Medication, Governorate, AtcClass,
     ):
         session.execute(delete(model))
@@ -272,6 +273,7 @@ def seed(seed_value: int, days: int, n_pharmacies: int, do_reset: bool) -> None:
     gov_ph_count = Counter(str(ph.governorate_id) for ph in pharmacies)
     today = date.today()
     stock_rows: list[dict] = []
+    batch_specs: list[tuple] = []
     for ph in pharmacies:
         gid = str(ph.governorate_id)
         n_ph = max(1, gov_ph_count[gid])
@@ -295,9 +297,74 @@ def seed(seed_value: int, days: int, n_pharmacies: int, do_reset: bool) -> None:
                 "quantity": qty, "min_threshold": max(3, int(per_ph_daily * 7)),
                 "recorded_at": today,
             })
+            batch_specs.append((ph.id, med.id, qty, cover))
     with engine.begin() as conn:
         _bulk(conn, StockLevel.__table__, stock_rows)
     print(f"• Stock snapshots: {len(stock_rows)}")
+
+    # ── Break each holding into lots with real expiry dates ──
+    # Shelf life is 18–36 months from manufacture, but what matters for waste
+    # is how much life is LEFT. Over-stocked pharmacies are given shorter-dated
+    # lots on purpose: in reality the two travel together — stock sits because
+    # it does not sell, and sitting stock is what expires. Without that
+    # correlation the expiry analytics would only ever find random noise.
+    batch_rows: list[dict] = []
+    for ph_id, med_id, qty, cover in batch_specs:
+        if qty <= 0:
+            continue
+        n_lots = 1 if qty < 60 else rng.randint(2, 3)
+        remaining = qty
+        for i in range(n_lots):
+            lot_qty = remaining if i == n_lots - 1 else int(remaining * rng.uniform(0.3, 0.6))
+            if lot_qty <= 0:
+                continue
+            remaining -= lot_qty
+
+            roll = rng.random()
+            if cover > 30 and roll < 0.28:
+                days_left = rng.randint(-25, 75)      # slow mover, short-dated
+            elif roll < 0.06:
+                days_left = rng.randint(-40, 20)      # genuine near/at expiry
+            elif roll < 0.22:
+                days_left = rng.randint(75, 180)
+            else:
+                days_left = rng.randint(180, 900)
+
+            expiry = today + timedelta(days=days_left)
+            shelf_life = rng.choice([540, 730, 1095])
+            batch_rows.append({
+                "medication_id": med_id,
+                "pharmacy_id": ph_id,
+                "warehouse": None,
+                "lot_number": f"L{rng.randint(100000, 999999)}",
+                "quantity": lot_qty,
+                "quantity_written_off": 0,
+                "manufactured_at": expiry - timedelta(days=shelf_life),
+                "expiry_date": expiry,
+                "received_at": today - timedelta(days=rng.randint(5, 200)),
+            })
+
+    # Central PCT warehouse lots — longer dated, they sit upstream.
+    for med in medications:
+        for _ in range(rng.randint(1, 3)):
+            days_left = rng.randint(120, 1000) if rng.random() > 0.1 else rng.randint(10, 110)
+            expiry = today + timedelta(days=days_left)
+            batch_rows.append({
+                "medication_id": med.id,
+                "pharmacy_id": None,
+                "warehouse": "PCT Tunis",
+                "lot_number": f"C{rng.randint(100000, 999999)}",
+                "quantity": rng.randint(5_000, 120_000),
+                "quantity_written_off": 0,
+                "manufactured_at": expiry - timedelta(days=730),
+                "expiry_date": expiry,
+                "received_at": today - timedelta(days=rng.randint(10, 300)),
+            })
+
+    with engine.begin() as conn:
+        _bulk(conn, StockBatch.__table__, batch_rows)
+    expired_now = sum(1 for b in batch_rows if b["expiry_date"] <= today)
+    print(f"• Stock batches: {len(batch_rows)}  ({expired_now} already expired)")
 
     # ── National inventory: daily per medication (drops during national episodes) ──
     nat_rows: list[dict] = []

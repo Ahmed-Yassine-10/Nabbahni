@@ -27,6 +27,7 @@ from app.models.transactional import (
     SalesDaily,
     Shipment,
     ShortageHistory,
+    StockBatch,
     StockLevel,
 )
 
@@ -38,6 +39,7 @@ __all__ = [
     "Supplier",
     "User",
     "StockLevel",
+    "StockBatch",
     "NationalStock",
     "SalesDaily",
     "Order",

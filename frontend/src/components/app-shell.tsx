@@ -10,6 +10,7 @@ import {
   Activity,
   AlertTriangle,
   Boxes,
+  Calculator,
   Brain,
   ClipboardList,
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
   Package,
   Repeat,
   ShoppingCart,
+  Trash2,
   Truck,
   X,
 } from "lucide-react";
@@ -39,6 +41,11 @@ const NAV_REGISTRY: Record<NavKey, { href: string; label: string; icon: ReactNod
     href: "/cc/stock",
     label: "Analyse des stocks",
     icon: <Boxes className="h-4 w-4" />,
+  },
+  "cc.expiry": {
+    href: "/cc/expiry",
+    label: "Péremption & gaspillage",
+    icon: <Trash2 className="h-4 w-4" />,
   },
   "cc.recommendations": {
     href: "/cc/recommendations",
@@ -64,6 +71,11 @@ const NAV_REGISTRY: Record<NavKey, { href: string; label: string; icon: ReactNod
     href: "/pharmacy",
     label: "Mon stock",
     icon: <Package className="h-4 w-4" />,
+  },
+  "ph.allocation": {
+    href: "/pharmacy/allocation",
+    label: "Quantités recommandées",
+    icon: <Calculator className="h-4 w-4" />,
   },
   "ph.orders": {
     href: "/pharmacy/orders",
