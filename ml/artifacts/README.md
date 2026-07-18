@@ -53,3 +53,21 @@ glissante (3 plis). Performances de la version versionnée :
 | 90 j | XGBoost | 10,9 % |
 
 Classifieur de rupture : AUC 0,999 · AP 0,981.
+
+### ⚠️ Ne lisez pas ces métriques comme une performance réelle
+
+Une AUC de 0,999 n'arrive pas sur des données réelles. Elle s'explique par la
+construction du jeu synthétique : le générateur fabrique les épisodes de rupture
+à partir des mêmes signaux que le classifieur reçoit en entrée (couverture,
+retards fournisseurs, historique de rupture). Le problème est donc quasi
+séparable — le modèle retrouve une règle qui a été écrite en amont.
+
+Cela se voit au scoring : les probabilités sont bimodales, proches de 0 ou
+proches de 1, avec très peu de cas intermédiaires. Sur un seed différent
+(777), 1700 prédictions ne produisent que 95 valeurs de probabilité distinctes.
+
+Conséquence pratique : la plupart des niveaux `critical` proviennent de la règle
+métier de sécurité (couverture < 5 jours sur un médicament essentiel), pas d'une
+probabilité élevée du modèle. Le pipeline est correct et vérifiable de bout en
+bout ; **la valeur prédictive, elle, ne sera mesurable qu'après réentraînement
+sur des données réelles.**
