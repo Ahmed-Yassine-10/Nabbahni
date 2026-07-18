@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { getRole } from "@/lib/api";
@@ -7,7 +8,6 @@ import { portalFor, type NavKey } from "@/lib/roles";
 import { LocaleSwitcher } from "./locale-switcher";
 import { SessionBar } from "./session-bar";
 import {
-  Activity,
   AlertTriangle,
   Boxes,
   Calculator,
@@ -233,15 +233,18 @@ function Sidebar({
       )}
     >
       <div className="flex items-center gap-2.5 border-b border-slate-100 px-4 py-3.5">
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white"
-          style={{ backgroundColor: "var(--portal-accent)" }}
-        >
-          <Activity className="h-4.5 w-4.5" aria-hidden />
-        </div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold leading-tight text-slate-900">SentinelleRx</div>
-          <div className="truncate text-2xs text-slate-400">{portalName}</div>
+          {/* Wordmark without the tagline: at sidebar size the strapline is an
+              illegible smudge, and the portal name below already subtitles it. */}
+          <Image
+            src="/brand/wordmark.png"
+            alt="Nabbahni"
+            width={560}
+            height={150}
+            priority
+            className="h-6 w-auto"
+          />
+          <div className="mt-1 truncate text-2xs text-slate-400">{portalName}</div>
         </div>
         {onClose && (
           <button
